@@ -35,5 +35,8 @@
     <ClInclude Include="CustomWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inclusion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
