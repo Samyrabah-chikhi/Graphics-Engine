@@ -145,6 +145,7 @@
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="C:\Users\Administrator\Downloads\stb_image.h" />
     <ClInclude Include="CustomWindow.h" />
     <ClInclude Include="inclusion.h" />
     <ClInclude Include="Shader.h" />
