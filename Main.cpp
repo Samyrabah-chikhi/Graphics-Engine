@@ -6,13 +6,25 @@
 #define width 800
 #define height 800
 
+typedef struct camera {
+    glm::vec3 Position;
+    glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
+    int widthCam, heightCam;
+    float speed = 0.1f;
+    float sensitivty = 100.0f;
+
+}camera;
+
+
 
 void Draw();
-void Transformation(GLuint shader,glm::vec3 translation, glm::vec3 rotation, glm::vec3 scaling , const char* Unif, float angle);
-void CameraTransformation(GLuint shader, glm::vec3 axis, glm::vec3 eye, glm::vec3 center, glm::vec3 up, float FOV, float minClip, float maxClip, float angle);
+void Transformation(GLuint shader, glm::vec3 translation, glm::vec3 rotation, glm::vec3 scaling, const char** Unif, float angle);
+void CameraTransformation(GLuint shader, glm::vec3 axis, glm::vec3 eye, glm::vec3 center, glm::vec3 up, float FOV, float minClip, float maxClip, float angle,const char* uniform);
 void Translate(GLuint shader, glm::vec3 translation, const char* Unif);
 void Scale(GLuint shader, glm::vec3 scaling, const char* Unif);
 void Rotate(GLuint shader, glm::vec3 rotation, float angle, const char* Unif);
+void CameraMove(GLFWwindow* window, glm::vec3* Position, glm::vec3 Orientation, glm::vec3 Up, float* speed, float sensitivity);
 
 int main() {
 
@@ -22,10 +34,10 @@ int main() {
     float vertices[] = {
         //Location          /Colors         //Texture map
         -0.5f,0.0f,0.5f,  0.7,0.6,0.5,     0.0f,0.0f,
-        -0.5f,0.0f,-0.5f, 0.2f,0.7f,0.4f,  1.0f,0.0f,
-        0.5f,0.0f,-0.5f,  0.1f,0.2f,0.8f,  0.0f,0.0f,
+        -0.5f,0.0f,-0.5f, 0.3f,0.3f,0.4f,  1.0f,0.0f,
+        0.5f,0.0f,-0.5f,  0.2f,0.2f,0.8f,  0.0f,0.0f,
         0.5f,0.0f,0.5f,   0.5f,0.3f,0.1f,  1.0f,0.0f,
-        0.0f,0.8f,0.0f,   0.9f,0.1f,0.1f,  0.5f,1.0f,
+        0.0f,0.8f,0.0f,   0.6f,0.6f,0.1f,  0.5f,1.0f,
     };
 
 
@@ -98,17 +110,26 @@ int main() {
 
     GLuint tex0Uni = glGetUniformLocation(shader, "tex0");
     glUniform1i(tex0Uni, 0);
-
-    
-
-
+ 
+    //Camera things
 
     glEnable(GL_DEPTH_TEST);
+
+    float rotation = 0.0f;
+    float prevTime = glfwGetTime(),crntTime;
+    
+    camera mainCamera;
+
+    glm::vec3 position= glm::vec3(0.0f, 0.0f, 2.0f);
+    glm::vec3 orientation= glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 up= glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 rotationDir= glm::vec3(0.0f, 1.0f, 0.0f);
+    float speed=0.05;
 
     //Main loop
     while (!glfwWindowShouldClose(window)) {
 
-        glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.3f, 0.3f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shader);
@@ -116,24 +137,28 @@ int main() {
 
         glEnableVertexAttribArray(VAO);
 
+        crntTime = glfwGetTime();
+        if (crntTime - prevTime >= 1 / 60) {
+            rotation += 3;
+            prevTime = crntTime;
+        }
+
         CameraTransformation(
             shader,
-            glm::vec3(0.0f, 1.0f, 0.0f),
-            glm::vec3(4.0f,3.0f,3.0f),
-            glm::vec3(0.0f,0.0f,0.0f),
-            glm::vec3(0.0f,1.0f,0.0f),
+            rotationDir,
+            position,
+            orientation,
+            up,
             45,
             0.1,
             100,
-            90
+            0,
+            "mvp"
         );
-
-
-
-
-
+        CameraMove(window, &position, orientation, up, &speed,1.0f);
 
         glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int) , GL_UNSIGNED_INT, 0);
+
 
 
         glfwSwapBuffers(window);
@@ -174,20 +199,50 @@ void Transformation(GLuint shader,glm::vec3 translation, glm::vec3 rotation, glm
 
 
 
-void CameraTransformation(GLuint shader,glm::vec3 axis,glm::vec3 eye,glm::vec3 center,glm::vec3 up,float FOV,float minClip,float maxClip,float angle) {
+void CameraTransformation(GLuint shader,glm::vec3 axis,glm::vec3 position,glm::vec3 orientation,glm::vec3 up,float FOV,float minClip,float maxClip,float angle,const char* uniform) {
 
     glm::mat4 model = glm::mat4(1.0f);
 
     model = glm::rotate(model, glm::radians(angle), axis);
     glm::mat4 view = glm::lookAt(
-        eye,
-        center,
+        position,
+        position+orientation,
         up
     );
     glm::mat4 projection = glm::perspective(glm::radians(FOV), (float)width / height, minClip, maxClip);
 
     glm::mat4 mvp = projection * view * model;
 
-    GLuint matrixID = glGetUniformLocation(shader, "mvp");
+    GLuint matrixID = glGetUniformLocation(shader, uniform);
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0][0]);
+}
+
+void CameraMove(GLFWwindow* window,glm::vec3* Position,glm::vec3 Orientation,glm::vec3 Up,float* speed,float sensitivity) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        *Position += *speed * Orientation;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        *Position += *speed * -Orientation;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        *Position += *speed * -glm::normalize(glm::cross(Orientation, Up));
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        *Position += *speed * glm::normalize(glm::cross(Orientation, Up));
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        *Position += *speed * Up;
+    }
+    if(glfwGetKey(window,GLFW_KEY_LEFT_CONTROL)==GLFW_PRESS){
+        *Position += *speed * -Up;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ) {
+        *speed = 0.01;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE) {
+        *speed = 0.05;
+    }
+    //Moving on X,Y,Z
+    
+   
 }

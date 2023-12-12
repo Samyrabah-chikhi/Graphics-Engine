@@ -1,18 +1,12 @@
-#ifndef TEXTURE_CLASS_H
-#define TEXTURE_CLASS_H
-
 #include "stb_image.h"
-#include <glad/glad.h>
-
-class Texture
-{
-public:
-	int widthImg, heightImg, colorChannel;
-	GLuint texture;
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp> 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
-	Texture(int widthImg, int heightImg, int colorChannel);
+	//(int widthImg, int heightImg, int colorChannel);
 
-};
-#endif
+
+
 

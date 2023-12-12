@@ -37,7 +37,6 @@ void CreatingWindow(GLFWwindow** window,int width,int height) {
         return;
     }
 
-    //Where openGL operates
+    //Where openGL operates   
     glViewport(0, 0, width, height);
-
 }

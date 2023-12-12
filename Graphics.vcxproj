@@ -153,6 +153,7 @@
     <ClInclude Include="CustomWindow.h" />
     <ClInclude Include="inclusion.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Fragment shader.txt" />
