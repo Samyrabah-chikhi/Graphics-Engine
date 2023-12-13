@@ -14,6 +14,8 @@ typedef struct camera {
     float speed = 0.1f;
     float sensitivty = 100.0f;
 
+    float lastX, lastY;
+
 }camera;
 
 
@@ -24,12 +26,16 @@ void CameraTransformation(GLuint shader, glm::vec3 axis, glm::vec3 eye, glm::vec
 void Translate(GLuint shader, glm::vec3 translation, const char* Unif);
 void Scale(GLuint shader, glm::vec3 scaling, const char* Unif);
 void Rotate(GLuint shader, glm::vec3 rotation, float angle, const char* Unif);
-void CameraMove(GLFWwindow* window, glm::vec3* Position, glm::vec3 Orientation, glm::vec3 Up, float* speed, float sensitivity);
+void CameraMove(GLFWwindow* window, glm::vec3* Position, glm::vec3* Orientation, glm::vec3* Up, float* speed, float sensitivity, float* yaw, float* pitch, bool* firstMouse, float* lastX, float* lastY);
 
 int main() {
 
     GLFWwindow* window;
     OnCreate(&window,width,height);
+
+    int instanceNumber=10;
+
+    float* instances;
 
     float vertices[] = {
         //Location          /Colors         //Texture map
@@ -39,6 +45,9 @@ int main() {
         0.5f,0.0f,0.5f,   0.5f,0.3f,0.1f,  1.0f,0.0f,
         0.0f,0.8f,0.0f,   0.6f,0.6f,0.1f,  0.5f,1.0f,
     };
+    for (int i = 0; i < instanceNumber; i++) {
+
+    }
 
 
     int indices[] = {
@@ -120,11 +129,21 @@ int main() {
     
     camera mainCamera;
 
-    glm::vec3 position= glm::vec3(0.0f, 0.0f, 2.0f);
+    glm::vec3 position= glm::vec3(0.0f, 0.0f, 5.0f);
     glm::vec3 orientation= glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 up= glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 rotationDir= glm::vec3(0.0f, 1.0f, 0.0f);
-    float speed=0.05;
+
+
+    float lastX=width/2, lastY=height/2;
+    float yaw = -90.0f;
+    float pitch = 0.0f;
+
+    bool firstMouse = true;
+
+    float initialFoV = 45.0f;
+    float mouseSpeed = 0.005f;
+    float speed = 0.05;
 
     //Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -149,14 +168,15 @@ int main() {
             position,
             orientation,
             up,
-            45,
+            initialFoV,
             0.1,
             100,
             0,
             "mvp"
         );
-        CameraMove(window, &position, orientation, up, &speed,1.0f);
 
+        //CameraMove(window, Position, Orientation, Up,speed,*sensitivity,yaw,pitch, firstMouse, lastX, lastY)
+        CameraMove(window, &position, &orientation, &up, &speed, mouseSpeed,&yaw,&pitch,&firstMouse,&lastX,&lastY);
         glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int) , GL_UNSIGNED_INT, 0);
 
 
@@ -217,24 +237,24 @@ void CameraTransformation(GLuint shader,glm::vec3 axis,glm::vec3 position,glm::v
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0][0]);
 }
 
-void CameraMove(GLFWwindow* window,glm::vec3* Position,glm::vec3 Orientation,glm::vec3 Up,float* speed,float sensitivity) {
+void CameraMove(GLFWwindow* window,glm::vec3* Position,glm::vec3* Orientation,glm::vec3* Up,float* speed,float sensitivity, float* yaw, float* pitch,bool* firstMouse,float* lastX,float* lastY) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        *Position += *speed * Orientation;
+        *Position += *speed * *Orientation;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        *Position += *speed * -Orientation;
+        *Position += *speed * -*Orientation;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        *Position += *speed * -glm::normalize(glm::cross(Orientation, Up));
+        *Position += *speed * -glm::normalize(glm::cross(*Orientation,*Up));
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        *Position += *speed * glm::normalize(glm::cross(Orientation, Up));
+        *Position += *speed * glm::normalize(glm::cross(*Orientation, *Up));
     }
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        *Position += *speed * Up;
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+        *Position += *speed * *Up;
     }
-    if(glfwGetKey(window,GLFW_KEY_LEFT_CONTROL)==GLFW_PRESS){
-        *Position += *speed * -Up;
+    if(glfwGetKey(window,GLFW_KEY_E)==GLFW_PRESS){
+        *Position += *speed * -*Up;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ) {
         *speed = 0.01;
@@ -242,7 +262,58 @@ void CameraMove(GLFWwindow* window,glm::vec3* Position,glm::vec3 Orientation,glm
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE) {
         *speed = 0.05;
     }
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+        *Position = glm::vec3(0.0f, 0.0f, 5.0f);
+        *Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+        *lastX = width / 2;
+        *lastY = height / 2;
+        *yaw = -90.0f;
+        *pitch = 0.0f;
+    }
     //Moving on X,Y,Z
-    
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        double xpos, ypos;
+        glfwGetCursorPos(window,&xpos, &ypos);
+
+        //std::cout << "LastX : " << *lastX << " LastY : " << *lastY << std::endl;;
+        //std::cout << "X : " << xpos << " Y : " << ypos << std::endl;;
+        if (*firstMouse)
+        {
+            *lastX = xpos;
+            *lastY = ypos;
+            *firstMouse = false;
+        }
+
+        float xoffset = xpos - *lastX;
+        float yoffset = *lastY - ypos;
+        *lastX = xpos;
+        *lastY = ypos;
+
+        float sensitivity = 0.1f;
+        xoffset *= sensitivity;
+        yoffset *= sensitivity;
+
+        *yaw += xoffset;
+        *pitch += yoffset;
+
+        if (*pitch > 88.0f)
+            *pitch = 88.0f;
+        if (*pitch < -88.0f)
+            *pitch = -88.0f;
+
+        glm::vec3 direction;
+        direction.x = cos(glm::radians(*yaw)) * cos(glm::radians(*pitch));
+        direction.y = sin(glm::radians(*pitch));
+        direction.z = sin(glm::radians(*yaw)) * cos(glm::radians(*pitch));
+        *Orientation = glm::normalize(direction);
+
+       
+    }
+    else if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_RELEASE){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+         *firstMouse = true;
+    }
    
 }
