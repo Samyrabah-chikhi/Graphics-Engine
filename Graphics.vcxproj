@@ -145,6 +145,7 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Meshes.cpp" />
+    <ClCompile Include="object.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="inclusion.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Meshes.h" />
+    <ClInclude Include="object.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>

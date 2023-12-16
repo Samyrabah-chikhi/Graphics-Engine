@@ -1,6 +1,7 @@
 #include <iostream>
 #include <Windows.h>
 
+#include "object.h"
 #include "inclusion.h"
 
 #define PI 3.14159
@@ -26,13 +27,58 @@ void Translate(GLuint shader, glm::vec3 translation);
 void Scale(GLuint shader, glm::vec3 scaling);
 void Rotate(GLuint shader, glm::vec3 rotationDir, float angle);
 
-
+void InitCamera(glm::mat4** mvp, glm::vec3 position, glm::vec3 orientation, glm::vec3 up, float FOV, float minClip, float maxClip);
+void ProjectMesh(GLuint shader, glm::mat4* mvp);
 
 int main() {
 
+    
     GLFWwindow* window;
     OnCreate(&window,width,height);
 
+    float cubeMesh[] = {
+   -0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f,  0.5f, -0.5f,
+    0.5f,  0.5f, -0.5f,
+   -0.5f,  0.5f, -0.5f,
+   -0.5f, -0.5f, -0.5f,
+
+   -0.5f, -0.5f,  0.5f,
+    0.5f, -0.5f,  0.5f,
+    0.5f,  0.5f,  0.5f,
+    0.5f,  0.5f,  0.5f,
+   -0.5f,  0.5f,  0.5f,
+   -0.5f, -0.5f,  0.5f,
+
+   -0.5f,  0.5f,  0.5f,
+   -0.5f,  0.5f, -0.5f,
+   -0.5f, -0.5f, -0.5f,
+   -0.5f, -0.5f, -0.5f,
+   -0.5f, -0.5f,  0.5f,
+   -0.5f,  0.5f,  0.5f,
+
+    0.5f,  0.5f,  0.5f,
+    0.5f,  0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f,  0.5f,
+    0.5f,  0.5f,  0.5f,
+
+   -0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f,  0.5f,
+    0.5f, -0.5f,  0.5f,
+   -0.5f, -0.5f,  0.5f,
+   -0.5f, -0.5f, -0.5f,
+
+   -0.5f,  0.5f, -0.5f,
+    0.5f,  0.5f, -0.5f,
+    0.5f,  0.5f,  0.5f,
+    0.5f,  0.5f,  0.5f,
+   -0.5f,  0.5f,  0.5f,
+   -0.5f,  0.5f, -0.5f,
+    };
 
     float vertex[] = {
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -77,6 +123,9 @@ int main() {
     -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };//Cube
+
+    printf("[%d]", sizeof(cubeMesh) / sizeof(float));
+     object pp = object(cubeMesh,sizeof(cubeMesh)/sizeof(float));
 
     glm::vec3 customColor(0.47, 0.52, 0.12);
 
@@ -170,11 +219,17 @@ int main() {
     float r = 2.0f;
     float red=1.0f, blue=0.0f, green=-0.3;
 
+    glm::mat4* mvp;
     //Main loop
     while (!glfwWindowShouldClose(window)) {
 
+        InitCamera(&mvp, position, orientation, up, initialFoV, 0.1, 100);
+
         glClearColor(0.05f, 0.05f, 0.05f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        pp.Render(mvp);
+
 
         glBindVertexArray(VAO);
         glUseProgram(shader);
@@ -253,6 +308,8 @@ int main() {
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        
+
         glfwSwapBuffers(window);
         glfwPollEvents();
        
@@ -285,13 +342,36 @@ void Rotate(GLuint shader, glm::vec3 rotationDir, float angle) {
     glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
 }
 
-void CameraTransformation(GLuint shader,glm::vec3 position,glm::vec3 orientation,glm::vec3 up,float FOV,float minClip,float maxClip) {
+void ProjectMesh(GLuint shader,glm::mat4* mvp) {
+
+    glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &mvp[0][0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &mvp[1][0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &mvp[2][0][0]);
+}
+void InitCamera(glm::mat4** mvp, glm::vec3 position, glm::vec3 orientation, glm::vec3 up, float FOV, float minClip, float maxClip) {
+
+    *mvp = (glm::mat4*)malloc(sizeof(glm::mat4) * 3);
 
     glm::mat4 model = glm::mat4(1.0f);
 
     glm::mat4 view = glm::lookAt(
         position,
-        position+orientation,
+        position + orientation,
+        up
+    );
+    glm::mat4 projection = glm::perspective(glm::radians(FOV), (float)width / height, minClip, maxClip);
+    (*mvp)[0] = model;
+    (*mvp)[1] = view;
+    (*mvp)[2] = projection;
+}
+
+void CameraTransformation(GLuint shader, glm::vec3 position, glm::vec3 orientation, glm::vec3 up, float FOV, float minClip, float maxClip) {
+
+    glm::mat4 model = glm::mat4(1.0f);
+
+    glm::mat4 view = glm::lookAt(
+        position,
+        position + orientation,
         up
     );
     glm::mat4 projection = glm::perspective(glm::radians(FOV), (float)width / height, minClip, maxClip);
@@ -300,8 +380,6 @@ void CameraTransformation(GLuint shader,glm::vec3 position,glm::vec3 orientation
     glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &view[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &projection[0][0]);
 }
-
-
 
 void CameraMove(GLFWwindow* window,glm::vec3* Position,glm::vec3* Orientation,glm::vec3* Up,float* speed,float sensitivity, float* yaw, float* pitch,bool* firstMouse,float* lastX,float* lastY) {
     
