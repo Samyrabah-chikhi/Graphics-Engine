@@ -1,11 +1,8 @@
 #include "stb_image.h"
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp> 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
+#include "stb_image.h"
 
-
-	//(int widthImg, int heightImg, int colorChannel);
+void createTexture(GLuint* texture, GLuint shader, const char* Uniform,const char* filename);
 
 
 
