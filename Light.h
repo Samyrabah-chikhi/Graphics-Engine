@@ -1,7 +1,13 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#pragma once
+class Light
+{
+//private:
+//	glm::vec3 position;
+//	int lightType;
+//public:
+//	Light(glm::vec3 position ,int lightType);
 
 
 
-void Light(unsigned char* data, unsigned char* indices, GLuint shader);
+};
 

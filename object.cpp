@@ -1,49 +1,102 @@
 #include "object.h"
 
-
+std::vector<object*> Objects;
 
 int object::numberOfObjects = 0;
-std::vector<object> object::Object;
+
+object::object(float* vertices, int numberOfVertices) {
+	this->indexExist = false;
+	this->shaderExist = false;
+	this->textureExist = false;
+	this->materialExist = false;
+	this->useCustomColor = false;
+
+	this->CustomColor = glm::vec3(0.8f, 0.8f, 0.8f);
+
+	this->indexOfObject = numberOfObjects;
+
+	Objects.push_back(this);
+	numberOfObjects++;
+
+	glGenVertexArrays(1, &this->VAO);
+	glGenBuffers(1, &this->VBO);
+
+	for (int i = 0; i < numberOfVertices; i ++) {
+		this->vertex.push_back(vertices[i]);
+
+	}
 
 
-	object::object(float* vertices, int numberOfVertices) {
 
-		indexExist = false;
-		shaderExist = false;
-		textureExit = false;
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		Object.push_back(*this);
+
+
+	glBindVertexArray(this->VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->vertex.size(), this->vertex.data(), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	CreateShader();
+}
+	
+	object::object(float* vertices, int numberOfVertices,glm::vec3 origin) {
+
+		this->indexExist = false;
+		this->shaderExist = false;
+		this->textureExist = false;
+		this->materialExist = false;
+		 this->useCustomColor = false;
+
+		 this->CustomColor = glm::vec3(0.8f, 0.8f, 0.8f);
+
+		 this->indexOfObject = numberOfObjects;
+
+		Objects.push_back(this);
 		numberOfObjects++;
 
-		glGenVertexArrays(1, &this->VAO);
-		glGenBuffers(1, &this->VBO);
+		glGenVertexArrays(1, & this->VAO);
+		glGenBuffers(1, & this->VBO);
 
-		for (int i = 0; i < numberOfVertices; i++)
-			this->vertex.push_back(vertices[i]);
+		for (int i = 0; i < numberOfVertices; i += 3) {
+			 this->vertex.push_back(vertices[i] + origin.x);
+			 this->vertex.push_back(vertices[i+1] + origin.y);
+			 this->vertex.push_back(vertices[i+2] + origin.z);
+		}
+
+			
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
 
-		glBindVertexArray(this->VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->vertex.size(), this->vertex.data(), GL_STATIC_DRAW);
+		glBindVertexArray( this->VAO);
+		glBindBuffer(GL_ARRAY_BUFFER,  this->VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) *  this->vertex.size(),  this->vertex.data(), GL_STATIC_DRAW);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
 		CreateShader();
+
 	}
 
-	object::object(float* vertices, int numberOfVertices, int* indices, int numberOfIndices) :
-		object(vertices, numberOfVertices) {
+	object::object(float* vertices, int numberOfVertices, glm::vec3 origin, glm::vec3 customColor) :
+		object::object(vertices,numberOfVertices,origin) {
+		 this->CustomColor = customColor;
+	}
 
-		this->indexExist = true;
+	object::object(float* vertices, int numberOfVertices, int* indices, int numberOfIndices, glm::vec3 origin) :
+		object(vertices, numberOfVertices,origin) {
+
+		 this->indexExist = true;
 		for (int i = 0; i < numberOfIndices; i++)
-			this->indices.push_back(indices[i]);
+			 this->indices.push_back(indices[i]);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * this->indices.size(), this->indices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,  this->EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) *  this->indices.size(),  this->indices.data(), GL_STATIC_DRAW);
 
 	}
 
@@ -51,12 +104,12 @@ std::vector<object> object::Object;
 
 
 		//Dont forget to change AttribPointer to skip by 6 in both the layouts
-		this->shaderExist = true;
+		 this->shaderExist = true;
 		for (int i = 0; i < numberOfColors; i++)
-			this->colors.push_back(colors[i]);
-		glGenBuffers(1, &this->VBOColor);
-		glBindBuffer(GL_ARRAY_BUFFER, this->VBOColor);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->colors.size(), this->colors.data(), GL_STATIC_DRAW);
+			 this->colors.push_back(colors[i]);
+		glGenBuffers(1, & this->VBOColor);
+		glBindBuffer(GL_ARRAY_BUFFER,  this->VBOColor);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) *  this->colors.size(),  this->colors.data(), GL_STATIC_DRAW);
 
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(1);
@@ -65,40 +118,53 @@ std::vector<object> object::Object;
 	}
 	
 	void object::Render(glm::mat4* mvp) {
-		glUseProgram(this->shaderID);
-		if (this->textureExit)
-			glUseProgram(this->TextureID);
-		glBindVertexArray(this->VAO);
-		if (indexExist) {
-			glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+		glBindVertexArray( this->VAO);
+		glUseProgram( this->shaderID);
+
+		glUniform3f(glGetUniformLocation( this->shaderID, "customColor"),  this->CustomColor.x,  this->CustomColor.y,  this->CustomColor.z);
+
+		if ( this->textureExist)
+			glUseProgram( this->TextureID);
+		if (this->indexExist) {
+			glDrawElements(GL_TRIANGLES,  this->indices.size(), GL_UNSIGNED_INT, 0);
 		}
-		//printf("%d", this->vertex.size());
-		glDrawArrays(GL_TRIANGLES, 0, this->vertex.size());
+		else {
+			glDrawArrays(GL_TRIANGLES, 0,  this->vertex.size());
+		}
+
 
 		ProjectMesh(mvp);
 	}
 	void object::CreateShader() {
 
-		std::string indexOfobject = std::to_string(this->indexOfObject);
+		std::string indexOfobject = std::to_string( this->indexOfObject);
 
-		const char* vertexShaderSource = "#version 330 core\n"
-			"layout (location = 0) in vec3 aPos;\n"
-			"uniform mat4 model;\n"
-			"uniform mat4 view;\n"
-			"uniform mat4 projection;\n"
-			"void main()\n"
-			"{\n"
-			"  gl_Position = projection * view * model * vec4(aPos+vec3(2.0,0.0f,0.0f), 1.0);\n"
-			"}\0";
-		const char* fragmentShaderSource = "#version 330 core\n"
-			"out vec4 FragColor;\n"
-			"void main()\n"
-			"{\n"
-			"FragColor = vec4(0.6f, 0.6f, 0.6f, 1.0f);\n"
-			"}\0";
+		const char* vertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+void main()
+	{
+		gl_Position = projection * view * model * vec4(aPos, 1.0);
+	}
+)";
+		const char* fragmentShaderSource = R"(
+#version 330 core
+out vec4 FragColor;
+uniform vec3 customColor;
+void main()
+	{
+			FragColor = vec4(customColor, 1.0f);
 
-		std::string vertexFileName = "E:\\Assets\\vertexShader" + indexOfobject + ".txt";
-		std::string fragmentFileName = "E:\\Assets\\fragmentShader" + indexOfobject + ".txt";
+	}
+)";
+
+		
+
+		std::string vertexFileName = "E:\\Assets\\Vertex shader" + indexOfobject + ".txt";
+		std::string fragmentFileName = "E:\\Assets\\Fragment shader" + indexOfobject + ".txt";
 
 		FILE* fptr = nullptr;
 		if (fopen_s(&fptr, vertexFileName.c_str(), "w") != 0) {
@@ -115,7 +181,7 @@ std::vector<object> object::Object;
 		fwrite(fragmentShaderSource, sizeof(char), strlen(fragmentShaderSource), fptr);
 		fclose(fptr);
 
-		this->shaderID = LoadShaders(vertexFileName.c_str(), fragmentFileName.c_str());
+		 this->shaderID = LoadShaders(vertexFileName.c_str(), fragmentFileName.c_str());
 	}
 
 	GLuint object::LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
@@ -209,9 +275,9 @@ std::vector<object> object::Object;
 
 	void object::ProjectMesh(glm::mat4* mvp) {
 
-		glUniformMatrix4fv(glGetUniformLocation(this->shaderID, "model"), 1, GL_FALSE, &mvp[0][0][0]);
-		glUniformMatrix4fv(glGetUniformLocation(this->shaderID, "view"), 1, GL_FALSE, &mvp[1][0][0]);
-		glUniformMatrix4fv(glGetUniformLocation(this->shaderID, "projection"), 1, GL_FALSE, &mvp[2][0][0]);
+		glUniformMatrix4fv(glGetUniformLocation( this->shaderID, "model"), 1, GL_FALSE, &mvp[0][0][0]);
+		glUniformMatrix4fv(glGetUniformLocation( this->shaderID, "view"), 1, GL_FALSE, &mvp[1][0][0]);
+		glUniformMatrix4fv(glGetUniformLocation( this->shaderID, "projection"), 1, GL_FALSE, &mvp[2][0][0]);
 	}
 	
 

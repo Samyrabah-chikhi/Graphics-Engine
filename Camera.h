@@ -2,30 +2,47 @@
 #include <glm/gtx/transform.hpp> 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "CustomWindow.h"
-#include <stdlib.h>
+#include <glad/glad.h>
 
-//typedef struct camera {
-//	glm::vec3 Position;
-//	glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
-//	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
-//	int width, height;
-//	float speed = 0.1f;
-//	float sensitivty = 100.0f;
-//
-//}camera;
-//
-//void CameraInit(camera* mainCam,glm::vec3 Position,int width,int height) {
-//	(*mainCam).height = height;
-//	(*mainCam).width = width;
-//	(*mainCam).Position = Position;
-//}
-//void CameraSettings() {
-//};
-//
-//
-////Camera(int width, int height, glm::vec3 Position);
-////void Matrix(float FOV, float nearPlane, float farPlane, GLuint shader, const char* Uniform);
-//void Inputs(GLFWwindow* window);
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
+#include <Windows.h>
 
+#include <vector>
+#include "object.h"
+
+class Camera
+{
+
+private:
+    GLFWwindow* window;
+
+    glm::vec3 position;
+    glm::vec3 orientation;
+    glm::vec3 up;
+
+
+    float width, height;
+
+    float lastX,lastY;
+    float yaw;
+    float pitch;
+
+    bool firstMouse;
+
+    float FOV;
+    float sensitivity;
+    float speed;
+    
+    float minClip, maxClip;
+
+    glm::mat4* mvp;
+public:
+    Camera(GLFWwindow* window, glm::vec3 position, glm::vec3 orientation, glm::vec3 up,float width,float height,float FOV);
+    void TransformCamera();
+    void CameraMove(GLFWwindow* window);
+    void render(std::vector<object*> Object);
+
+    glm::mat4* getMvp();
+};
 
