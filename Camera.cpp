@@ -1,5 +1,38 @@
 #include "Camera.h"
 
+
+Camera::Camera(GLFWwindow* window,glm::vec3 position, glm::vec3 orientation, glm::vec3 up, float width, float height, float FOV)
+{
+    this->position = position;
+    this->orientation = orientation;
+    this->up = up;
+
+    this->FOV = FOV;
+
+    this->width = width;
+    this->height = height;
+       
+    this->yaw = -90.f;
+    this->pitch = 0.0f;
+
+    this->lastX = this->width / 2; 
+    this->lastY = this->height / 2;
+
+    this->sensitivity = 0.1f;
+    this->speed = 0.05;
+
+    this->firstMouse = true;
+
+    this->minClip = 0.01f;
+    this->maxClip = 100.0f;
+    
+    this->window = window;
+
+
+    TransformCamera();
+}
+
+
 void Camera::CameraMove(GLFWwindow* window) {
 
     double xpos, ypos;
@@ -9,22 +42,22 @@ void Camera::CameraMove(GLFWwindow* window) {
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-         this->position += this->speed * this->orientation;
+        this->position += this->speed * this->orientation;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-         this->position += this->speed * -this->orientation;
+        this->position += this->speed * -this->orientation;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-         this->position += this->speed * -glm::normalize(glm::cross(this->orientation, this->up));
+        this->position += this->speed * -glm::normalize(glm::cross(this->orientation, this->up));
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-         this->position += this->speed * glm::normalize(glm::cross(this->orientation, this->up));
+        this->position += this->speed * glm::normalize(glm::cross(this->orientation, this->up));
     }
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-         this->position += this->speed * this->up;
+        this->position += this->speed * this->up;
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-         this->position += this->speed * -this->up;
+        this->position += this->speed * -this->up;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         this->speed = 0.01;
@@ -35,7 +68,7 @@ void Camera::CameraMove(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         this->position = glm::vec3(0.0f, 0.0f, 5.0f);
         this->orientation = glm::vec3(0.0f, 0.0f, -1.0f);
-        this->up = glm::vec3(0.0f,1.0f,0.0f);
+        this->up = glm::vec3(0.0f, 1.0f, 0.0f);
         this->lastX = this->width / 2;
         this->lastY = this->height / 2;
         this->yaw = -90.0f;
@@ -76,11 +109,7 @@ void Camera::CameraMove(GLFWwindow* window) {
         direction.y = sin(glm::radians(this->pitch));
         direction.z = sin(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
         this->orientation = glm::normalize(direction);
-       
-        std::cout << this->lastX << std::endl;
-        std::cout << this->lastY << std::endl;
-        std::cout << this->yaw << std::endl;
-        std::cout << this->pitch << std::endl;
+
     }
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -88,14 +117,10 @@ void Camera::CameraMove(GLFWwindow* window) {
     }
 }
 
-void Camera::render(std::vector<object*> Object)
-{
 
-    for (int i = 0; i < Object.size(); i++) {
-        Object[i]->Render(this->mvp);
-    }
 
-}
+
+
 
 void Camera::TransformCamera() {
 
@@ -112,41 +137,18 @@ void Camera::TransformCamera() {
     this->mvp[0] = model;
     this->mvp[1] = view;
     this->mvp[2] = projection;
-    
 
-    std::cout << "(" << this->position.x << "," << this->position.y << "," << this->position.z << ")" << std::endl;
-    std::cout << "(" << this->orientation.x <<"," << this->orientation.y << "," << this->orientation.z << ")" << std::endl;
-    std::cout << "(" << this->up.x << "," << this->up.y << "," << this->up.z << ")" << std::endl;
 }
 
-Camera::Camera(GLFWwindow* window,glm::vec3 position, glm::vec3 orientation, glm::vec3 up, float width, float height, float FOV)
+
+
+void Camera::render(std::vector<object*> Object)
 {
-    this->position = position;
-    this->orientation = orientation;
-    this->up = up;
+    int length = Objects.size();
+    for (int i = 0; i < length; i++) {
+        Object[i]->Render(this->mvp);
+    }
 
-    this->FOV = FOV;
-
-    this->width = width;
-    this->height = height;
-       
-    this->yaw = -90.f;
-    this->pitch = 0.0f;
-
-    this->lastX = this->width / 2; 
-    this->lastY = this->height / 2;
-
-    this->sensitivity = 0.1f;
-    this->speed = 0.05;
-
-    this->firstMouse = true;
-
-    this->minClip = 0.01f;
-    this->maxClip = 100.0f;
-    
-    this->window = window;
-
-    TransformCamera();
 }
 
 glm::mat4* Camera::getMvp() {

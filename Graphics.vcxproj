@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CustomWindow.cpp" />
+    <ClCompile Include="DummyFile.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />

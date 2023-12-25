@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "object.h"
+#include "Light.h"
 
 class Camera
 {
@@ -42,7 +43,7 @@ public:
     void TransformCamera();
     void CameraMove(GLFWwindow* window);
     void render(std::vector<object*> Object);
-
+    void UpdateLight();
     glm::mat4* getMvp();
 };
 

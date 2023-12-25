@@ -1,5 +1,7 @@
 #include "inclusion.h"
 
+
+
 #define width 800
 #define height 800
 
@@ -12,49 +14,27 @@ int main() {
     
     GLFWwindow* window;
     OnCreate(&window,width,height);
-
+   
     float cubeMesh[] = {
-   -0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f,  0.5f, -0.5f,
-    0.5f,  0.5f, -0.5f,
-   -0.5f,  0.5f, -0.5f,
-   -0.5f, -0.5f, -0.5f,
 
-   -0.5f, -0.5f,  0.5f,
-    0.5f, -0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
-   -0.5f,  0.5f,  0.5f,
-   -0.5f, -0.5f,  0.5f,
+        0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f ,
+        0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
 
-   -0.5f,  0.5f,  0.5f,
-   -0.5f,  0.5f, -0.5f,
-   -0.5f, -0.5f, -0.5f,
-   -0.5f, -0.5f, -0.5f,
-   -0.5f, -0.5f,  0.5f,
-   -0.5f,  0.5f,  0.5f,
+        1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f ,
+        1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f ,
 
-    0.5f,  0.5f,  0.5f,
-    0.5f,  0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
+        1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f ,
+        1.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f ,
 
-   -0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f,  0.5f,
-    0.5f, -0.5f,  0.5f,
-   -0.5f, -0.5f,  0.5f,
-   -0.5f, -0.5f, -0.5f,
+        0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f ,
+        0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f ,
 
-   -0.5f,  0.5f, -0.5f,
-    0.5f,  0.5f, -0.5f,
-    0.5f,  0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
-   -0.5f,  0.5f,  0.5f,
-   -0.5f,  0.5f, -0.5f,
+        0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f ,
+        0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f ,
+
+        1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f ,
+        1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
+
     };
 
     float vertex[] = {
@@ -106,10 +86,8 @@ int main() {
         cubeMesh, 
         sizeof(cubeMesh) / sizeof(float), 
         glm::vec3(-2.0f, 0.0f, 0.0f)
-        ,glm::vec3(1.0f,0.0f,0.0f)
+        ,glm::vec3(1.0f,1.0f,0.0f)
     );
-
-    glm::vec3 customColor(0.47, 0.52, 0.12);
 
     
     //Light
@@ -124,18 +102,17 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    GLuint lightShader = LoadShader(
+    /*GLuint lightShader = LoadShader(
         "E:\\Assets\\Vs.txt",
         "E:\\Assets\\Fs.txt"
-    );
+    );*/
    
 
     //Camera things
-
     glEnable(GL_DEPTH_TEST);
 
     float rotation = 0.0f;
-    float prevTime = glfwGetTime(),crntTime;
+    float prevTime = glfwGetTime(), crntTime;
     
     //Make a struct containing all 
 
@@ -164,18 +141,20 @@ int main() {
 
     Camera cam = Camera(window,position,orientation,up,width,height,initialFoV);
 
+    int nbFrames = 0;
+
     //Main loop
     while (!glfwWindowShouldClose(window)) {
 
         glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-
-        InitCamera(&mvp, position, orientation, up, initialFoV, 0.1, 100);
         cam.render(Objects); 
 
         float crntTime = glfwGetTime();
+
         if (crntTime - prevTime >= 1 / 60) {
+
             cam.CameraMove(window);
             cam.TransformCamera();
 
@@ -200,7 +179,6 @@ void Translate(GLuint shader, glm::vec3 translation) {
      glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
 
 }
-
 void Scale(GLuint shader, glm::vec3 scaling) {
     glm::mat4 model;
     model = glm::scale(model, scaling);
@@ -241,4 +219,7 @@ void Rotate(GLuint shader, glm::vec3 rotationDir, float angle) {
             glVertex3f(x * zr0, y * zr0, z0);
         }
         
-   */ 
+*/ 
+void LightlmaolmaoIMakeShitFunctionsThatDestroyMyWholeProject() {
+
+}
