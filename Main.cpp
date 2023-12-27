@@ -48,14 +48,14 @@ int main() {
     glm::vec3 position= glm::vec3(0.0f, 0.0f, 5.0f);
     glm::vec3 orientation= glm::vec3(0.0f, 0.0f, -1.0f);
 
-    glm::mat4* mvp;
-
     Camera cam = Camera(window,position,orientation);
 
 
     //Main Loop and framerate
     int nbFrames = 0;
     float prevTime = glfwGetTime(), crntTime;
+
+   // printf("Number of objects : %d\n", Objects.size());
 
     //Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -75,7 +75,6 @@ int main() {
 
         if (crntTime - prevTime >= 1 / 60) {
 
-            //
             if (!userInterface.io->WantCaptureMouse) {
                 cam.CameraMove(window);
                 cam.TransformCamera();
@@ -83,6 +82,7 @@ int main() {
             
             prevTime = crntTime;
         }
+
 
 
         glfwSwapBuffers(window);

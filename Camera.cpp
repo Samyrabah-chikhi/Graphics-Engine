@@ -69,9 +69,6 @@ Camera::Camera(GLFWwindow* window,glm::vec3 position, glm::vec3 orientation, glm
 void Camera::CameraMove(GLFWwindow* window) {
 
         double xpos, ypos;
-        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-            glfwGetCursorPos(window, &xpos, &ypos);
-        }
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             this->position += this->speed * this->orientation;
         }

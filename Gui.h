@@ -13,6 +13,7 @@ private:
 	float diffuse[3] = { 0.8f , 0.8f , 0.8f };;
 	float specular[3] = { 1.0f, 1.0f, 1.0f };
 	float shininess[1] = { 128.0f };
+
 	
 public:
 	Gui(GLFWwindow* window);

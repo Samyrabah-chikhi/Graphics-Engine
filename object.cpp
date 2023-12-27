@@ -147,8 +147,8 @@ object::object(float* vertices, int numberOfVertices) {
 	this->materialExist = false;
 
 	this->material.color = glm::vec3(1.0f, 0.0f, 0.0f);
-	this->material.ambient = glm::vec3(1.0f, 0.5f, 0.31f);
-	this->material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
+	this->material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	this->material.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
 	this->material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 	this->material.shininess = 128.0f;
 
@@ -184,8 +184,8 @@ object::object(float* vertices, int numberOfVertices, glm::vec3 origin) {
 	this->materialExist = false;
 
 	this->material.color = glm::vec3(1.0f, 0.0f, 0.0f);
-	this->material.ambient = glm::vec3(1.0f, 0.5f, 0.31f);
-	this->material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
+	this->material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	this->material.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
 	this->material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 	this->material.shininess = 128.0f;
 
@@ -522,15 +522,6 @@ void object::calculateNormals() {
 	glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 
-
-	for (int i = 0; i < this->normals.size(); i += 3) {
-		norm.x = this->normals[i];
-		norm.y = this->normals[i+1];
-		norm.z = this->normals[i+2];
-		std::cout << "Normal "<<i/3<<": <"<<norm.x<<","<<norm.y<<","<<norm.z<<">"<< std::endl;
-
-	}
-
 }
 void object::SetViewPos(glm::vec3 camPos)
 {
@@ -540,9 +531,7 @@ void object::SetViewPos(glm::vec3 camPos)
 
 void object::SetColor(glm::vec3 color)
 {
-	this->material.color.x = color.x;
-	this->material.color.y = color.y;
-	this->material.color.z = color.z;
+	this->material.color = color;
 }
 void object::SetAmbient(glm::vec3 ambient)
 {
@@ -566,6 +555,7 @@ void object::SetShininess(float shininess)
 {
 	this->material.shininess = shininess;
 }
+
 glm::vec3 object::point(int index) {
 	return glm::vec3(this->vertex[3 * index], this->vertex[3 * index + 1], this->vertex[3 * index + 2]);
 }

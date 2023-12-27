@@ -26,74 +26,60 @@ void Gui::AfterDrawing(std::vector<object*> Object)
 
     int length = Object.size();
 
-    bool* setColors = (bool*)malloc(length*sizeof(bool));
-    bool* setAmbients = (bool*)malloc(length * sizeof(bool));
-    bool* setDiffuses = (bool*)malloc(length * sizeof(bool));
-    bool* setSpeculars = (bool*)malloc(length * sizeof(bool));
-    bool* setShininesses = (bool*)malloc(length * sizeof(bool));
-
     for (int i = 0; i < length; i++) {
-        
-        setColors[i] = false;
-        setAmbients[i] = false;
-        setDiffuses[i] = false;
-        setSpeculars[i] = false;
-        setShininesses[i] = false;
+
+
 
         std::string title = "Object " + std::to_string(i + 1) + ":";
         ImGui::Text(title.c_str());
 
         //Color
 
-        title = " Set Color ";
+        title = " Set Color " + std::to_string(i+1);
         ImGui::ColorEdit3(title.c_str(), this->color);
-        title = "Update Color";
-        ImGui::Checkbox(title.c_str(), &setColors[i]);
-     
-        if (setColors[i]) {
+        title = "Update Color" + std::to_string(i + 1);
+        if (ImGui::Button(title.c_str())) {
             Objects[i]->SetColor(glm::vec3(color[0], color[1], color[2]));
         }
         //Works till this :
 
-        //Ambient
         
-        title = " Set Ambient ";
+        title = " Set Ambient " + std::to_string(i + 1);
         ImGui::ColorEdit3(title.c_str(), this->ambient);
-        title = "Update Ambient";
-        ImGui::Checkbox(title.c_str(), &setAmbients[i]);
+        title = "Update Ambient" + std::to_string(i + 1);
 
-        if (setAmbients[i]) {
+        if (ImGui::Button(title.c_str())) {
             Objects[i]->SetAmbient(glm::vec3(ambient[0], ambient[1], ambient[2]));
         }
         //Diffuse
  
-        title = " Set Diffuse ";
+        title = " Set Diffuse " + std::to_string(i + 1);
         ImGui::ColorEdit3(title.c_str(), this->diffuse);
-        title = "Update Diffuse";
-        ImGui::Checkbox(title.c_str(), &setDiffuses[i]);
+        title = "Update Diffuse" + std::to_string(i + 1);
 
-        if (setDiffuses[i]) {
+        if (ImGui::Button(title.c_str())) {
             Objects[i]->SetDiffuse(glm::vec3(diffuse[0], diffuse[1], diffuse[2]));
         }
         //Specular
  
-        title = " Set Specular ";
+        title = " Set Specular " + std::to_string(i + 1);
         ImGui::ColorEdit3(title.c_str(), this->specular);
-        title = "Update Specular";
-        ImGui::Checkbox(title.c_str(), &setSpeculars[i]);
+        title = "Update Specular" + std::to_string(i + 1);
 
-        if (setSpeculars[i]) {
+        if (ImGui::Button(title.c_str())) {
             Objects[i]->SetSpecular(glm::vec3(specular[0], specular[1], specular[2]));
         }
         //Shininess
-        title = " Set Shininess ";
+        title = " Set Shininess " + std::to_string(i + 1);
         ImGui::SliderFloat(title.c_str(), this->shininess, 0.0f, 512.0f);
-        title = "Update Shininess";
-        ImGui::Checkbox(title.c_str(), &setShininesses[i]);
-        if (setShininesses[i]) {
+        title = "Update Shininess" + std::to_string(i + 1);
+
+        if (ImGui::Button(title.c_str())) {
             Objects[i]->SetShininess(shininess[0]);
         }
     }
+
+
     ImGui::End();
 }
 
