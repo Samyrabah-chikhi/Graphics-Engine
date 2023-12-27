@@ -27,8 +27,8 @@
 //
 //		DirLight dr;
 //		dr.direction = glm::vec3(-1.0f,1.0f,-1.0f);
-//
 //		dr.color = glm::vec3(1.0f, 1.0f, 1.0f);
+//		
 //		dr.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 //		dr.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
 //		dr.specular = glm::vec3(1.0f, 1.0f, 1.0f);

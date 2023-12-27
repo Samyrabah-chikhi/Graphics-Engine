@@ -38,12 +38,17 @@ private:
     float minClip, maxClip;
 
     glm::mat4* mvp;
+
+    bool LockCamera;
+
 public:
+    Camera(GLFWwindow* window, glm::vec3 position, glm::vec3 orientation);
     Camera(GLFWwindow* window, glm::vec3 position, glm::vec3 orientation, glm::vec3 up,float width,float height,float FOV);
     void TransformCamera();
     void CameraMove(GLFWwindow* window);
     void render(std::vector<object*> Object);
     void UpdateLight();
     glm::mat4* getMvp();
+    void enableDepth();
 };
 

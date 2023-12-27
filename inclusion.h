@@ -12,3 +12,4 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Camera.h"
+#include "Gui.h"

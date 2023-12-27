@@ -1,6 +1,11 @@
 #include "object.h"
 
-
+typedef struct PhongLight {
+	glm::vec3 lightPos;
+	glm::vec3 lightColor;
+	float ambientStrength;
+	float specular;
+}PhongLight;
 
 std::vector<PhongLight> light;
 
@@ -148,7 +153,7 @@ void object::Render(glm::mat4* mvp) {
 	glUniform1f(glGetUniformLocation(this->shaderID, "lightExist"),
 		this->lightExist);
 
-	//this->dummyLight();
+	dummyLight();
 	// un truc du genre , rendering light will stay optional
 	// set to false unless there's light
 	// button to desactive light and one to reactivate it 
@@ -168,9 +173,6 @@ void object::Render(glm::mat4* mvp) {
 		fprintf(stderr, "OpenGL Error: %d\n", error);
 	}
 
-
-	//dummyLight();
-
 	ProjectMesh(mvp);
 }
 void object::CreateShader() {
@@ -186,14 +188,10 @@ out vec3 FragPos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-
-out mat4 modelViewProjection;
-
 void main()
 	{
 		gl_Position = projection * view * model * vec4(aPos, 1.0);
 		FragPos = gl_Position.xyz;
-		modelViewProjection = projection * view * model;
 }
 )";
 	const char* geomtryShaderSource = R"(
@@ -201,28 +199,26 @@ void main()
 layout(triangles) in;
 layout(triangle_strip,max_vertices = 3) out ;
 
-vec3 GetNormal()
-{
-   vec3 a = vec3(gl_in[0].gl_Position) - vec3(gl_in[1].gl_Position);
-   vec3 b = vec3(gl_in[2].gl_Position) - vec3(gl_in[1].gl_Position);
-   return normalize(cross(a, b));
-}  
-
 out vec3 Normal;
-in mat4 modelViewProjection[];
 
-void main(){
-
-	Normal = GetNormal();
-
-	 for(int i = 0; i < 3; i++)
-    {
-        gl_Position = modelViewProjection[0] * gl_in[i].gl_Position;
-        EmitVertex();
-    }
-    EndPrimitive();
+vec3 normalCalculation(){
+	vec3 edge_1 = (gl_in[1].gl_Position - gl_in[0].gl_Position).xyz ;
+	vec3 edge_2 = (gl_in[2].gl_Position - gl_in[0].gl_Position).xyz ;
+	
+	return cross(edge_1,edge_2);	
+}
+void draw(){
+ 	for(int i=0;i<3;i++){
+ 		gl_Position = gl_in[i].gl_Position;
+ 		EmitVertex();
+	 }
+	EndPrimitive();
 }
 
+void main(){
+		Normal = normalCalculation();
+		draw();
+}
 )";
 
 
@@ -306,12 +302,12 @@ void main()
 
 }
 	else{
-    FragColor = vec4(material.color*material.ambient, 1.0);
+    FragColor = vec4(material.color, 1.0);
 }
 
 }
 )";
-	std::string geomtryFileName = "E:\\Assets\\Geomtry shader" + indexOfobject + ".txt";
+	std::string geomtryFileName = "E\\Assets\\Geomtry shader" + indexOfobject + ".txt";
 	std::string vertexFileName = "E:\\Assets\\Vertex shader" + indexOfobject + ".txt";
 	std::string fragmentFileName = "E:\\Assets\\Fragment shader" + indexOfobject + ".txt";
 
@@ -328,7 +324,6 @@ void main()
 		exit(1);
 	}
 	fwrite(fragmentShaderSource, sizeof(char), strlen(fragmentShaderSource), fptr);
-	fclose(fptr);
 
 	if (fopen_s(&fptr, geomtryFileName.c_str(), "w") != 0) {
 		printf("Problem in opening the goemtry shader file\n");
@@ -337,7 +332,7 @@ void main()
 	fwrite(geomtryShaderSource, sizeof(char), strlen(geomtryShaderSource), fptr);
 	fclose(fptr);
 
-	this->shaderID = LoadShaders(vertexFileName.c_str(), fragmentFileName.c_str(), geomtryFileName.c_str());
+	this->shaderID = LoadShaders(vertexFileName.c_str(), fragmentFileName.c_str());
 }
 
 GLuint object::LoadShaders(const char* vertex_file_path, const char* fragment_file_path, const char* geomtry_file_path) {
@@ -369,11 +364,11 @@ GLuint object::LoadShaders(const char* vertex_file_path, const char* fragment_fi
 	// Read The Geomtry Shader code from the file
 	std::string GeomtryShaderCode;
 	std::ifstream GeomtryShaderStream(geomtry_file_path, std::ios::in);
-	if (GeomtryShaderStream.is_open()) {
+	if (FragmentShaderStream.is_open()) {
 		std::stringstream sstr;
-		sstr << GeomtryShaderStream.rdbuf();
-		GeomtryShaderCode = sstr.str();
-		GeomtryShaderStream.close();
+		sstr << FragmentShaderStream.rdbuf();
+		FragmentShaderCode = sstr.str();
+		FragmentShaderStream.close();
 	}
 
 
@@ -465,29 +460,25 @@ void object::setLightExist(bool setLight)
 	this->lightExist = setLight;
 }
 
-void object::dummyLight() {
+void object::dumyLight() {
 
-	PhongLight lights;
-
-	lights.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	lights.lightPos = glm::vec3(0.0f, 3.0f, 0.0f);
-	lights.ambientStrength = 0.1f;
-	lights.specular = 32.0f;
+	light[1].lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	light[1].lightPos = glm::vec3(0.0f, 3.0f, 0.0f);
+	light[1].ambientStrength = 0.1f;
+	light[1].specular = 32.0f;
 	this->lightExist = true;
-
-	light.push_back(lights);
-
-	glUniform3f(glGetUniformLocation(this->shaderID, "light[0].lightcolor"),
-		light[0].lightColor.x, light[0].lightColor.y, light[0].lightColor.z );
-	glUniform3f(glGetUniformLocation(this->shaderID, "light[0].lightPos"),
-		light[0].lightPos.x, light[0].lightPos.y, light[0].lightPos.z);
-	glUniform1f(glGetUniformLocation(this->shaderID, "light[0].ambientStrength"),
-		light[0].ambientStrength);
-	glUniform1f(glGetUniformLocation(this->shaderID, "light[0].specular"),
-		light[0].specular);
-	glUniform1f(glGetUniformLocation(this->shaderID, "llightExist"),
+	glUniform3f(glGetUniformLocation(this->shaderID, "light[1].lightcolor"),
+		light.lightColor);
+	glUniform3f(glGetUniformLocation(this->shaderID, "light[1].lightPos"),
+		light.lightPos);
+	glUniform1f(glGetUniformLocation(this->shaderID, "light[1].ambientStrength"),
+		light.ambientStrength);
+	glUniform3f(glGetUniformLocation(this->shaderID, "light[1].specular"),
+		light.specular);
+	glUniform3f(glGetUniformLocation(this->shaderID, "llightExist"),
 		this->lightExist);
 	// How to pass custom data ????
 
 }
+
 

@@ -17,8 +17,10 @@
 typedef struct PhongLight {
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
-	float ambientStrength;
-	float specular;
+
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
 }PhongLight;
 
 
@@ -81,6 +83,13 @@ public:
 	void dummyLight();
 
 	void calculateNormals();
+	void SetViewPos(glm::vec3 camPos);
+
+	void SetColor(glm::vec3 color);
+	void SetAmbient(glm::vec3 ambient);
+	void SetDiffuse(glm::vec3 diffuse);
+	void SetSpecular(glm::vec3 specular);
+	void SetShininess(float shininess);
 
 private:
 	void CreateShader();

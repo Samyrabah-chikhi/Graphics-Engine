@@ -7,6 +7,7 @@ void OnCreate(GLFWwindow** window,int width,int height) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     CreatingWindow(window,width,height);
+
 }
 
 

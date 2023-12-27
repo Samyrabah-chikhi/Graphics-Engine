@@ -1,5 +1,117 @@
 #include "object.h"
 
+const char* vertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+out vec3 FragPos;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+out vec3 Normal;
+out mat4 mvp;
+void main()
+	{
+		gl_Position = vec4(aPos, 1.0);
+
+		FragPos = gl_Position.xyz;
+		Normal = aNormal;
+		mvp = projection * view * model;
+}
+)";
+const char* geomtryShaderSource = R"(
+#version 330 core
+layout(triangles) in;
+layout(triangle_strip,max_vertices = 3) out ;
+
+in mat4 mvp[];
+in vec3 Normal[];
+
+out vec3 Normals;
+void main(){
+
+	 for(int i = 0; i < 3; i++)
+    {	
+		Normals = Normal[i];
+        gl_Position = mvp[i]*gl_in[i].gl_Position;
+        EmitVertex();
+		
+    }
+    EndPrimitive();
+}
+
+)";
+
+
+
+
+const char* fragmentShaderSource = R"(
+#version 330 core
+
+out vec4 FragColor;
+
+in vec3 Normals;
+in vec3 FragPos;
+
+struct Material {
+    vec3 color;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+}; 
+
+struct PhongLight{
+    vec3 lightPos;
+    vec3 lightColor;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+uniform vec3 viewPos;
+
+#define NR_PHONG_LIGHTS 128
+uniform PhongLight phongLightss[NR_PHONG_LIGHTS];
+
+uniform PhongLight phongLights;
+uniform Material material;
+
+uniform bool lightExist;
+
+void main()
+{    
+
+  if(lightExist){
+	
+	vec3 norm = normalize(Normals);
+  	
+    vec3 lightDir = normalize(phongLights.lightPos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+	vec3 specular = phongLights.specular * (spec * material.specular);  
+        
+	vec3 ambient  = phongLights.ambient * material.ambient;
+	vec3 diffuse  = phongLights.diffuse * (diff * material.diffuse);
+
+	
+    vec3 result = (ambient + diffuse + specular) * material.color;
+    FragColor = vec4(result, 1.0);
+
+}
+	else{
+    FragColor = vec4(material.color, 1.0);
+}
+
+}
+)";
+
 float cubeMesh[] = {
 
 		0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f ,
@@ -35,10 +147,10 @@ object::object(float* vertices, int numberOfVertices) {
 	this->materialExist = false;
 
 	this->material.color = glm::vec3(1.0f, 0.0f, 0.0f);
-	this->material.ambient = glm::vec3(1.0f, 1.0f, 1.0f);
-	this->material.diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
+	this->material.ambient = glm::vec3(1.0f, 0.5f, 0.31f);
+	this->material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
 	this->material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
-	this->material.shininess = 32.0f;
+	this->material.shininess = 128.0f;
 
 	this->indexOfObject = numberOfObjects;
 
@@ -71,11 +183,11 @@ object::object(float* vertices, int numberOfVertices, glm::vec3 origin) {
 	this->textureExist = false;
 	this->materialExist = false;
 
-	this->material.color = glm::vec3(0.8f, 0.8f, 0.8f);
-	this->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f);
+	this->material.color = glm::vec3(1.0f, 0.0f, 0.0f);
+	this->material.ambient = glm::vec3(1.0f, 0.5f, 0.31f);
 	this->material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
 	this->material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
-	this->material.shininess = 32.0f;
+	this->material.shininess = 128.0f;
 
 	this->indexOfObject = numberOfObjects;
 
@@ -182,121 +294,21 @@ void object::Render(glm::mat4* mvp) {
 
 	ProjectMesh(mvp);
 }
+
+void object::translate(glm::vec3 translation)
+{
+}
+void object::rotate(glm::vec3 rotation, float angle)
+{
+}
+void object::scale(glm::vec3 scale)
+{
+}
+
 void object::CreateShader() {
 
 	std::string indexOfobject = std::to_string(this->indexOfObject);
 
-	const char* vertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-out vec3 FragPos;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-out vec3 Normal;
-out mat4 mvp;
-void main()
-	{
-		gl_Position = vec4(aPos, 1.0);
-
-		FragPos = gl_Position.xyz;
-		Normal = aNormal;
-		mvp = projection * view * model;
-}
-)";
-	const char* geomtryShaderSource = R"(
-#version 330 core
-layout(triangles) in;
-layout(triangle_strip,max_vertices = 3) out ;
-
-in mat4 mvp[];
-in vec3 Normal[];
-
-out vec3 Normals;
-void main(){
-
-	 for(int i = 0; i < 3; i++)
-    {	
-		Normals = Normal[i];
-        gl_Position = mvp[i]*gl_in[i].gl_Position;
-        EmitVertex();
-		
-    }
-    EndPrimitive();
-}
-
-)";
-
-
-
-
-	const char* fragmentShaderSource = R"(
-#version 330 core
-
-out vec4 FragColor;
-
-in vec3 Normals;
-in vec3 FragPos;
-
-struct Material {
-    vec3 color;
-
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float shininess;
-}; 
-
-struct PhongLight{
-    vec3 lightPos;
-    vec3 lightColor;
-    float ambientStrength;
-    float specular;
-};
-
-
-#define NR_PHONG_LIGHTS 128
-uniform PhongLight phongLightss[NR_PHONG_LIGHTS];
-
-uniform PhongLight phongLights;
-uniform Material material;
-
-uniform bool lightExist;
-
-void main()
-{    
-
-  if(lightExist){
-	
-	vec3 norm = normalize(Normals);
-	
-
-		
-    //vec3 ambient = phongLights.ambientStrength * material.ambient;
-	//vec3 ambient = material.ambient;
-	vec3 ambient = 0.05 * phongLights.lightColor;
-
-    vec3 lightDir = normalize(phongLights.lightPos - FragPos);
-
-    float diff = max(dot(norm,lightDir),0.0);
-    //vec3 diffuse = diff * material.diffuse;
-	vec3 diffuse = diff * phongLights.lightColor;
-
-    //vec3 result = (ambient + diffuse)* material.color;
-	vec3 result = (ambient + diffuse) * material.color;
-
-    FragColor = vec4(result, 1.0);
-
-}
-	else{
-    FragColor = vec4(material.color*material.ambient, 1.0);
-}
-
-}
-)";
 	std::string geomtryFileName = "E:\\Assets\\Geomtry shader" + indexOfobject + ".txt";
 	std::string vertexFileName = "E:\\Assets\\Vertex shader" + indexOfobject + ".txt";
 	std::string fragmentFileName = "E:\\Assets\\Fragment shader" + indexOfobject + ".txt";
@@ -456,19 +468,23 @@ void object::dummyLight() {
 
 	lights.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	lights.lightPos = glm::vec3(1.0f, 0.0f, 1.0f);
-	lights.ambientStrength = 0.1f;
-	lights.specular = 32.0f;
+	lights.ambient = glm::vec3(0.1f, 0.1f, 0.1f);
+	lights.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	lights.specular = glm::vec3(1.0f, 1.0f, 1.0f);
 	this->lightExist = true;
+
 
 
 	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.lightColor"),
 		1.0f,glm::value_ptr(lights.lightColor));
 	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.lightPos"),
 		1.0f,glm::value_ptr(lights.lightPos));
-	glUniform1f(glGetUniformLocation(this->shaderID, "phongLights.ambientStrength"),
-		lights.ambientStrength);
-	glUniform1f(glGetUniformLocation(this->shaderID, "phongLights.specular"),
-		lights.specular);
+	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.ambient"),
+		1.0f, glm::value_ptr(lights.ambient));
+	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.diffuse"),
+		1.0f, glm::value_ptr(lights.diffuse));
+	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.specular"),
+		1.0f, glm::value_ptr(lights.specular));
 	glUniform1i(glGetUniformLocation(this->shaderID, "lightExist"),
 		this->lightExist);
 
@@ -516,7 +532,72 @@ void object::calculateNormals() {
 	}
 
 }
+void object::SetViewPos(glm::vec3 camPos)
+{
+	glUniform3fv(glGetUniformLocation(this->shaderID, "viewPos"),
+		1.0f, glm::value_ptr(camPos));
+}
+
+void object::SetColor(glm::vec3 color)
+{
+	this->material.color.x = color.x;
+	this->material.color.y = color.y;
+	this->material.color.z = color.z;
+}
+void object::SetAmbient(glm::vec3 ambient)
+{
+	this->material.ambient.x = ambient.x;
+	this->material.ambient.y = ambient.y;
+	this->material.ambient.z = ambient.z;
+}
+void object::SetDiffuse(glm::vec3 diffuse)
+{
+	this->material.diffuse.x = diffuse.x;
+	this->material.diffuse.y = diffuse.y;
+	this->material.diffuse.z = diffuse.z;
+}
+void object::SetSpecular(glm::vec3 specular)
+{
+	this->material.specular.x = specular.x;
+	this->material.specular.y = specular.y;
+	this->material.specular.z = specular.z;	
+}
+void object::SetShininess(float shininess)
+{
+	this->material.shininess = shininess;
+}
 glm::vec3 object::point(int index) {
 	return glm::vec3(this->vertex[3 * index], this->vertex[3 * index + 1], this->vertex[3 * index + 2]);
 }
 
+
+/*void drawSphere(float** vertices, GLfloat r, GLint lats, GLint longs)
+{
+	*vertices = (float*)malloc(sizeof(lats*longs));
+
+	int i, j;
+	for (i = 0; i <= lats; i++)
+	{
+		double lat0 = PI * (-0.5 + (double)(i - 1) / lats);
+		double z0 = sin(lat0) * r;
+		double zr0 = cos(lat0) * r;
+		double lat1 = PI * (-0.5 + (double)i / lats);
+		double z1 = sin(lat1) * r;
+		double zr1 = cos(lat1) * r;
+
+
+		for (j = 0; j <= longs; j++)
+		{
+			GLfloat lng = 2 * PI * (double)(j - 1) / longs;
+			GLfloat x = cos(lng);
+			GLfloat y = sin(lng);
+
+
+
+			glNormal3f(x * zr1, y * zr1, z1);
+			glVertex3f(x * zr1, y * zr1, z1);
+			glNormal3f(x * zr0, y * zr0, z0);
+			glVertex3f(x * zr0, y * zr0, z0);
+		}
+
+*/
