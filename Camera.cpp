@@ -10,8 +10,8 @@ Camera::Camera(GLFWwindow* window, glm::vec3 position,glm::vec3 orientation)
     this->up = glm::vec3(0.0f, 1.0f, 0.0f);
     this->FOV = 45.0f;
 
-    this->width = 800;
-    this->height = 800;
+    this->width = 1080;
+    this->height = 1080;
 
     this->yaw = -90.f;
     this->pitch = 0.0f;
@@ -177,6 +177,16 @@ void Camera::render(std::vector<object*> Object)
     for (int i = 0; i < length; i++) {
         Object[i]->SetViewPos(this->position);
         Object[i]->Render(this->mvp);
+
+        glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "lightExist"),
+            lightExist);
+
+        glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "nbrPhongLight"),
+            int(PhongLights.size()));
+
+        for(int j=0;j<PhongLights.size();j++)
+            this->RenderLight(Object[i], j);
+
     }
 
 }
@@ -188,4 +198,37 @@ glm::mat4* Camera::getMvp() {
 void Camera::enableDepth()
 {
     glEnable(GL_DEPTH_TEST);
+}
+
+void Camera::RenderLight(object* Object,int indices)
+{
+    GLuint shader = Object->GetShaderID();
+    std::string uniform;
+
+
+    uniform = "phongLights[" + std::to_string(indices) + "].lightColor";
+
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
+        1.0f, glm::value_ptr(PhongLights[indices].lightColor));
+
+    uniform = "phongLights[" + std::to_string(indices) + "].lightPos";
+
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
+        1.0f, glm::value_ptr(PhongLights[indices].lightPos));
+
+    uniform = "phongLights[" + std::to_string(indices) + "].ambient";
+
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
+        1.0f, glm::value_ptr(PhongLights[indices].ambient));
+
+    uniform = "phongLights[" + std::to_string(indices) + "].diffuse";
+
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
+        1.0f, glm::value_ptr(PhongLights[indices].diffuse));
+
+    uniform = "phongLights[" + std::to_string(indices) + "].specular";
+
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
+        1.0f, glm::value_ptr(PhongLights[indices].specular));
+
 }

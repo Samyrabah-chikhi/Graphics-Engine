@@ -50,6 +50,7 @@ int main() {
 
     Camera cam = Camera(window,position,orientation);
 
+    addLight(PHONG_LIGHT);
 
     //Main Loop and framerate
     int nbFrames = 0;

@@ -8,6 +8,7 @@ class Gui {
 
 private:
 	bool MoveCamera = false;
+	bool renderLight = true;
 	float color[3] = { 1.0f , 1.0f , 1.0f};
 	float ambient[3] = { 0.1f , 0.1f , 0.1f };
 	float diffuse[3] = { 0.8f , 0.8f , 0.8f };;

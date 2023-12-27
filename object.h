@@ -14,14 +14,16 @@
 #include <sstream>
 #include <iostream>
 
-typedef struct PhongLight {
-	glm::vec3 lightPos;
-	glm::vec3 lightColor;
+# define M_PI 3.14159265358979323846
 
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
-}PhongLight;
+//typedef struct PhongLight {
+//	glm::vec3 lightPos;
+//	glm::vec3 lightColor;
+//
+//	glm::vec3 ambient;
+//	glm::vec3 diffuse;
+//	glm::vec3 specular;
+//}PhongLight;
 
 
 typedef struct Material {
@@ -61,7 +63,7 @@ private:
 	bool textureExist;
 	bool materialExist;
 
-
+	bool renderLight = true;
 	bool lightExist = false;
 
 public:
@@ -80,7 +82,7 @@ public:
 	void scale(glm::vec3 scale);
 
 	void setLightExist(bool setLight);
-	void dummyLight();
+	void RenderLight(bool renderLight);
 
 	void calculateNormals();
 	void SetViewPos(glm::vec3 camPos);
@@ -90,7 +92,10 @@ public:
 	void SetDiffuse(glm::vec3 diffuse);
 	void SetSpecular(glm::vec3 specular);
 	void SetShininess(float shininess);
+	
+	GLuint GetShaderID();
 
+	void generateSphere(float radius,int stackCount,int sectorCount);
 private:
 	void CreateShader();
 	GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path, const char* geomtry_file_path);

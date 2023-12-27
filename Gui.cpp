@@ -22,20 +22,26 @@ void Gui::BeforeDrawing()
 
 void Gui::AfterDrawing(std::vector<object*> Object)
 {
+
     ImGui::Begin("User Interface");
+ 
+    ImGui::Checkbox("Render Light", &this->renderLight);
 
     int length = Object.size();
 
     for (int i = 0; i < length; i++) {
 
+        
 
+        Objects[i]->RenderLight(this->renderLight);
+        
 
         std::string title = "Object " + std::to_string(i + 1) + ":";
         ImGui::Text(title.c_str());
 
-        //Color
+        //Color      
 
-        title = " Set Color " + std::to_string(i+1);
+        title = " ";
         ImGui::ColorEdit3(title.c_str(), this->color);
         title = "Update Color" + std::to_string(i + 1);
         if (ImGui::Button(title.c_str())) {
@@ -44,7 +50,7 @@ void Gui::AfterDrawing(std::vector<object*> Object)
         //Works till this :
 
         
-        title = " Set Ambient " + std::to_string(i + 1);
+        title = " ";
         ImGui::ColorEdit3(title.c_str(), this->ambient);
         title = "Update Ambient" + std::to_string(i + 1);
 
@@ -53,7 +59,7 @@ void Gui::AfterDrawing(std::vector<object*> Object)
         }
         //Diffuse
  
-        title = " Set Diffuse " + std::to_string(i + 1);
+        title = " ";
         ImGui::ColorEdit3(title.c_str(), this->diffuse);
         title = "Update Diffuse" + std::to_string(i + 1);
 
@@ -62,7 +68,7 @@ void Gui::AfterDrawing(std::vector<object*> Object)
         }
         //Specular
  
-        title = " Set Specular " + std::to_string(i + 1);
+        title = " ";
         ImGui::ColorEdit3(title.c_str(), this->specular);
         title = "Update Specular" + std::to_string(i + 1);
 
@@ -70,7 +76,7 @@ void Gui::AfterDrawing(std::vector<object*> Object)
             Objects[i]->SetSpecular(glm::vec3(specular[0], specular[1], specular[2]));
         }
         //Shininess
-        title = " Set Shininess " + std::to_string(i + 1);
+        title = " ";
         ImGui::SliderFloat(title.c_str(), this->shininess, 0.0f, 512.0f);
         title = "Update Shininess" + std::to_string(i + 1);
 

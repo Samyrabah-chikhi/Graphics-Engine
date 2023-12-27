@@ -10,6 +10,5 @@
 #include "CustomWindow.h"
 #include "stb_image.h"
 #include "Texture.h"
-#include "Light.h"
 #include "Camera.h"
 #include "Gui.h"

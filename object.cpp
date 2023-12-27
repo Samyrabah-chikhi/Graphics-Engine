@@ -71,13 +71,18 @@ struct PhongLight{
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+
 };
-uniform vec3 viewPos;
+
 
 #define NR_PHONG_LIGHTS 128
-uniform PhongLight phongLightss[NR_PHONG_LIGHTS];
+uniform PhongLight phongLights[NR_PHONG_LIGHTS];
 
-uniform PhongLight phongLights;
+uniform int nbrPhongLight;
+
+uniform PhongLight phongLightss; // to be deleted
+
+uniform vec3 viewPos;
 uniform Material material;
 
 uniform bool lightExist;
@@ -87,21 +92,28 @@ void main()
 
   if(lightExist){
 	
-	vec3 norm = normalize(Normals);
-  	
-    vec3 lightDir = normalize(phongLights.lightPos - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
+	
+  	vec3 result = vec3(0.0);
+	
+	
+	for(int i=0;i<nbrPhongLight;i++){
 
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-	vec3 specular = phongLights.specular * (spec * material.specular);  
+		vec3 norm = normalize(Normals);
+		vec3 lightDir = normalize(phongLights[i].lightPos - FragPos);
+		float diff = max(dot(norm, lightDir), 0.0);
+
+		vec3 viewDir = normalize(viewPos - FragPos);
+		vec3 reflectDir = reflect(-lightDir, norm);  
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+		vec3 specular = phongLights[i].specular * (spec * material.specular);  
         
-	vec3 ambient  = phongLights.ambient * material.ambient;
-	vec3 diffuse  = phongLights.diffuse * (diff * material.diffuse);
+		vec3 ambient  = phongLights[i].ambient * material.ambient;
+		vec3 diffuse  = phongLights[i].diffuse * (diff * material.diffuse);
 
 	
-    vec3 result = (ambient + diffuse + specular) * material.color;
+		result += (ambient + diffuse + specular) * material.color;
+	}
+    
     FragColor = vec4(result, 1.0);
 
 }
@@ -134,7 +146,7 @@ float cubeMesh[] = {
 
 };
 
-std::vector<PhongLight> light;
+//std::vector<PhongLight> light;
 
 std::vector<object*> Objects;
 
@@ -268,10 +280,16 @@ void object::Render(glm::mat4* mvp) {
 	glUniform1f(glGetUniformLocation(this->shaderID, "material.shininess"),
 		this->material.shininess);
 
-	glUniform1f(glGetUniformLocation(this->shaderID, "lightExist"),
-		this->lightExist);
+	if (!this->renderLight) {
+		glUniform1f(glGetUniformLocation(this->shaderID, "lightExist"),
+			false);
 
-	this->dummyLight();
+	}
+	else {
+
+	}
+
+
 	// un truc du genre , rendering light will stay optional
 	// set to false unless there's light
 	// button to desactive light and one to reactivate it 
@@ -285,11 +303,6 @@ void object::Render(glm::mat4* mvp) {
 	}
 	else {
 		glDrawArrays(GL_TRIANGLES, 0, this->vertex.size());
-	}
-
-	GLenum error = glGetError();
-	if (error != GL_NO_ERROR) {
-		fprintf(stderr, "OpenGL Error: %d\n", error);
 	}
 
 	ProjectMesh(mvp);
@@ -457,38 +470,13 @@ void object::ProjectMesh(glm::mat4* mvp) {
 	glUniformMatrix4fv(glGetUniformLocation(this->shaderID, "model"), 1, GL_FALSE, &mvp[0][0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(this->shaderID, "view"), 1, GL_FALSE, &mvp[1][0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(this->shaderID, "projection"), 1, GL_FALSE, &mvp[2][0][0]);
+
 }
 void object::setLightExist(bool setLight)
 {
 	this->lightExist = setLight;
 }
 
-void object::dummyLight() {
-	PhongLight lights;
-
-	lights.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	lights.lightPos = glm::vec3(1.0f, 0.0f, 1.0f);
-	lights.ambient = glm::vec3(0.1f, 0.1f, 0.1f);
-	lights.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-	lights.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-	this->lightExist = true;
-
-
-
-	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.lightColor"),
-		1.0f,glm::value_ptr(lights.lightColor));
-	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.lightPos"),
-		1.0f,glm::value_ptr(lights.lightPos));
-	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.ambient"),
-		1.0f, glm::value_ptr(lights.ambient));
-	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.diffuse"),
-		1.0f, glm::value_ptr(lights.diffuse));
-	glUniform3fv(glGetUniformLocation(this->shaderID, "phongLights.specular"),
-		1.0f, glm::value_ptr(lights.specular));
-	glUniform1i(glGetUniformLocation(this->shaderID, "lightExist"),
-		this->lightExist);
-
-}
 
 void object::calculateNormals() {
 
@@ -560,34 +548,13 @@ glm::vec3 object::point(int index) {
 	return glm::vec3(this->vertex[3 * index], this->vertex[3 * index + 1], this->vertex[3 * index + 2]);
 }
 
+void generateSphere(float radius, int stackCount, int sectorCount) {
+	
+}
+GLuint object::GetShaderID() {
+	return this->shaderID;
+}
 
-/*void drawSphere(float** vertices, GLfloat r, GLint lats, GLint longs)
-{
-	*vertices = (float*)malloc(sizeof(lats*longs));
-
-	int i, j;
-	for (i = 0; i <= lats; i++)
-	{
-		double lat0 = PI * (-0.5 + (double)(i - 1) / lats);
-		double z0 = sin(lat0) * r;
-		double zr0 = cos(lat0) * r;
-		double lat1 = PI * (-0.5 + (double)i / lats);
-		double z1 = sin(lat1) * r;
-		double zr1 = cos(lat1) * r;
-
-
-		for (j = 0; j <= longs; j++)
-		{
-			GLfloat lng = 2 * PI * (double)(j - 1) / longs;
-			GLfloat x = cos(lng);
-			GLfloat y = sin(lng);
-
-
-
-			glNormal3f(x * zr1, y * zr1, z1);
-			glVertex3f(x * zr1, y * zr1, z1);
-			glNormal3f(x * zr0, y * zr0, z0);
-			glVertex3f(x * zr0, y * zr0, z0);
-		}
-
-*/
+void object::RenderLight(bool renderLight) {
+	this->renderLight = renderLight;
+}
