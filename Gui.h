@@ -10,10 +10,16 @@ class Gui {
 private:
 	bool MoveCamera = false;
 	bool renderLight = true;
-	
+	bool addCube = false;
 	//Lights
 	float lightDirection[3] = { -1.0f , 0.0f , -1.0f };
 	float lightPos[3] = { 0.0f , 2.0f , 0.0f };
+
+	float lightDirectionSpot[3] = { 0.0f, -1.0f, 0.0f };
+	float lightPosSpot[3] = { 0.0f, 2.0f, 0.0f };
+
+	float cutOff[1] = {12.0f};
+
 	float lightColor[3] = { 1.0f , 1.0f , 1.0f };
 
 	//Material

@@ -8,19 +8,9 @@
 #include <vector>
 
 #define LIGHTTYPE int
-#define DIRECTIONAL_LIGHT 0
-#define POINT_LIGHT 1
+#define POINT_LIGHT 0
+#define DIRECTIONAL_LIGHT 1
 #define SPOT_LIGHT 2
-#define PHONG_LIGHT 3
-
-typedef struct PhongLight {
-    glm::vec3 lightPos;
-    glm::vec3 lightColor;
-  
-    glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
-}PhongLight;
 
 typedef struct DirLight {
     glm::vec3 direction;
@@ -42,17 +32,32 @@ typedef struct PointLight {
     glm::vec3 specular;
 }PointLight;
 
+typedef struct SpotLight {
+    glm::vec3 position;
+    glm::vec3 direction;
+    float cutOff;
+    float outerCutOff;
 
-extern std::vector <PointLight> PointLights; 
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
+
+
+}SpotLight;
+
 extern std::vector <DirLight> DirLights;
-extern std::vector <PhongLight> PhongLights;
+extern std::vector <PointLight> PointLights;
+extern std::vector <SpotLight> SpotLights;
 extern bool lightExist ;
 
 void addLight(LIGHTTYPE type);
-
-
-
-
+void showDirLight(int index);
+void showPointLight(int index);
+void showSpotLight(int index);
 
 
     

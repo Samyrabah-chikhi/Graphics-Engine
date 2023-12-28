@@ -181,6 +181,8 @@ void Camera::enableDepth()
 void Camera::render(std::vector<object*> Object)
 {
     int length = Objects.size();
+
+
     for (int i = 0; i < length; i++) {
         Object[i]->SetViewPos(this->position);
         Object[i]->Render(this->mvp);
@@ -191,12 +193,25 @@ void Camera::render(std::vector<object*> Object)
         glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "nbrDirLight"),
             int(DirLights.size()));
 
+        glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "nbrPointLight"),
+            int(PointLights.size()));
+       
+        glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "nbrSpotLight"),
+            int(SpotLights.size()));
         
-        for (int j = 0; j < DirLights.size(); j++) {
+
+        for (int j = 0; j < DirLights.size(); j++) 
             this->RenderDirLight(Object[i], j);
+        
+        for (int j = 0; j < PointLights.size(); j++) 
+            this->RenderPointLight(Object[i], j);
+        
+        for (int j = 0; j < SpotLights.size(); j++) {
+            //std::cout << SpotLights[j].cutOff << std::endl;
+            this->RenderSpotLight(Object[i], j);
         }
             
-
+        
     }
 
 }
@@ -223,4 +238,76 @@ void Camera::RenderDirLight(object* Object, int indices)
     uniform = "dirLights[" + std::to_string(indices) + "].specular";
     glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f, 
         glm::value_ptr(DirLights[indices].specular));
+}
+
+void Camera::RenderPointLight(object* Object, int indices)
+{
+    GLuint shader = Object->GetShaderID();
+    std::string uniform;
+
+    uniform = "pointLights[" + std::to_string(indices) + "].position";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(PointLights[indices].position));
+
+    uniform = "pointLights[" + std::to_string(indices) + "].constant";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), PointLights[indices].constant);
+
+    uniform = "pointLights[" + std::to_string(indices) + "].linear";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), PointLights[indices].linear);
+
+    uniform = "pointLights[" + std::to_string(indices) + "].quadratic";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), PointLights[indices].quadratic);
+
+    uniform = "pointLights[" + std::to_string(indices) + "].ambient";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(PointLights[indices].ambient));
+
+    uniform = "pointLights[" + std::to_string(indices) + "].diffuse";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(PointLights[indices].diffuse));
+
+    uniform = "pointLights[" + std::to_string(indices) + "].specular";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(PointLights[indices].specular));
+}
+
+void Camera::RenderSpotLight(object* Object, int indices)
+{
+    GLuint shader = Object->GetShaderID();
+    std::string uniform;
+    
+    uniform = "spotLights[" + std::to_string(indices) + "].position";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(SpotLights[indices].position));
+
+    uniform = "spotLights[" + std::to_string(indices) + "].direction";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(SpotLights[indices].direction));
+
+    uniform = "spotLights[" + std::to_string(indices) + "].cutOff";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), SpotLights[indices].cutOff);
+
+    uniform = "spotLights[" + std::to_string(indices) + "].outerCutOff";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), SpotLights[indices].outerCutOff);
+
+    uniform = "spotLights[" + std::to_string(indices) + "].ambient";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(SpotLights[indices].ambient));
+
+    uniform = "spotLights[" + std::to_string(indices) + "].diffuse";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(SpotLights[indices].diffuse));
+
+    uniform = "spotLights[" + std::to_string(indices) + "].specular";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(SpotLights[indices].specular));
+
+    uniform = "spotLights[" + std::to_string(indices) + "].constant";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), SpotLights[indices].constant);
+
+    uniform = "spotLights[" + std::to_string(indices) + "].linear";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), SpotLights[indices].linear);
+
+    uniform = "spotLights[" + std::to_string(indices) + "].quadratic";
+    glUniform1f(glGetUniformLocation(shader, uniform.c_str()), SpotLights[indices].quadratic);
 }

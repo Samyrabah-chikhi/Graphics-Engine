@@ -50,6 +50,9 @@ public:
     void UpdateLight();
     glm::mat4* getMvp();
     void enableDepth();
+
     void RenderDirLight(object* Object, int indices);
+    void RenderPointLight(object* Object, int indices);
+    void RenderSpotLight(object* Object, int indices);
 };
 

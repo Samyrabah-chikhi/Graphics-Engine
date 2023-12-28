@@ -4,11 +4,10 @@
 #define POINT_LIGHT 0
 #define DIRECTIONAL_LIGHT 1
 #define SPOT_LIGHT 2
-#define PHONG_LIGHT 3
 
 std::vector<PointLight> PointLights;
 std::vector<DirLight> DirLights;
-std::vector <PhongLight> PhongLights;
+std::vector <SpotLight> SpotLights; 
 bool lightExist = false;
 
 void addLight(LIGHTTYPE type)
@@ -18,7 +17,7 @@ void addLight(LIGHTTYPE type)
 	if (type == 0) {
 
 		PointLight pt;
-		pt.position = glm::vec3(0.0f, 0.0f, 0.0f);
+		pt.position = glm::vec3(0.0f, 2.0f, 0.0f);
 		
 		pt.constant = 1.0f;
 		pt.linear = 0.09f;
@@ -36,7 +35,7 @@ void addLight(LIGHTTYPE type)
 		DirLight dr;
 		dr.direction = glm::vec3(-1.0f,0.0f,-1.0f);
 		
-		dr.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+		dr.ambient = glm::vec3(0.1f, 0.1f, 0.1f);
 		dr.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
 		dr.specular = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -44,17 +43,23 @@ void addLight(LIGHTTYPE type)
 	}
 	else if (type == 2) {
 
-	}
-	else if (type == 3) {
-		PhongLight pl;
-		pl.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		pl.lightPos = glm::vec3(1.0f, 0.0f, 1.0f);
+		SpotLight sp;
 
-		pl.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-		pl.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-		pl.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+		sp.position = glm::vec3(0.0f, 2.0f, 0.0f);;
+		sp.direction = glm::vec3(0.0f, -1.0f, 0.0f);;
 
-		PhongLights.push_back(pl);
+		sp.cutOff = glm::cos(glm::radians(12.5f));
+		sp.outerCutOff = glm::cos(glm::radians(15.0f));
+
+		sp.constant = 1.0f;
+		sp.linear = 0.09f;
+		sp.quadratic = 0.032f;
+
+		sp.ambient = glm::vec3(0.1f, 0.1f, 0.1f);
+		sp.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+		sp.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+
+		SpotLights.push_back(sp);
 	}
 	else {
 		printf("Error no like this exists\n");

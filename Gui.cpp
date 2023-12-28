@@ -27,6 +27,10 @@ void Gui::AfterDrawing(std::vector<object*> Object)
  
     ImGui::Checkbox("Render Light", &this->renderLight);
 
+    if(ImGui::Button("Add Cube")){
+        object newMesh = object();
+    }
+
     int length = Object.size();
     std::string title;
 
@@ -93,13 +97,61 @@ void Gui::AfterDrawing(std::vector<object*> Object)
         lightDirection[1] = DirLights[i].direction.y;
         lightDirection[2] = DirLights[i].direction.z;
 
-        title = "Light Direction" + std::to_string(i + 1);
-        ImGui::SliderFloat3(title.c_str(), this->lightDirection,-10,10);
+        title = "DirectionalLight Direction" + std::to_string(i + 1);
+        ImGui::SliderFloat3(title.c_str(), this->lightDirection,-1,1);
         DirLights[i].direction = glm::vec3(lightDirection[0], lightDirection[1], lightDirection[2]);
 
         /*title = "Light Color" + std::to_string(i + 1);
         ImGui::ColorEdit3(title.c_str(), this->lightColor);
         PhongLights[i].lightColor = glm::vec3(lightColor[0], lightColor[1], lightColor[2]);*/
+    }
+    
+    length = PointLights.size();
+    for (int i = 0; i < length; i++) {
+
+        lightPos[0] = PointLights[i].position.x;
+        lightPos[1] = PointLights[i].position.y;
+        lightPos[2] = PointLights[i].position.z;
+
+        title = "PointLight Position" + std::to_string(i + 1);
+        ImGui::SliderFloat3(title.c_str(), this->lightPos,-10,10);
+        PointLights[i].position = glm::vec3(lightPos[0], lightPos[1], lightPos[2]);
+
+        /*title = "Light Color" + std::to_string(i + 1);
+        ImGui::ColorEdit3(title.c_str(), this->lightColor);
+        PhongLights[i].lightColor = glm::vec3(lightColor[0], lightColor[1], lightColor[2]);*/
+    }
+
+    length = SpotLights.size();
+    for (int i = 0; i < length; i++) {
+            
+        title = "SpotLight Position" + std::to_string(i + 1);
+        ImGui::SliderFloat3(title.c_str(), this->lightPosSpot, -10, 10);
+
+        //title = "SpotLight Position Update" + std::to_string(i + 1);
+        //if (ImGui::Button(title.c_str())) {
+            SpotLights[i].position = glm::vec3(lightPosSpot[0], lightPosSpot[1], lightPosSpot[2]);
+        //}    
+
+        title = "SpotLight Direction" + std::to_string(i + 1);
+        ImGui::SliderFloat3(title.c_str(), this->lightDirectionSpot, -1, 1);
+
+        //title = "SpotLight Direction Update" + std::to_string(i + 1);
+        //if (ImGui::Button(title.c_str())) {
+            SpotLights[i].direction = glm::vec3(lightDirectionSpot[0], lightDirectionSpot[1], lightDirectionSpot[2]);
+        //}        
+        
+        title = "SpotLight CutOff Angle" + std::to_string(i + 1);
+        ImGui::SliderFloat(title.c_str(), this->cutOff, 0.0f, 45.0f);
+
+        //title = "SpotLight CutOff Angle Update" + std::to_string(i + 1);
+        //if (ImGui::Button(title.c_str())) {
+            //printf("We're here: "); std::cout << glm::cos(glm::radians(this->cutOff[0])) << std::endl;
+            SpotLights[i].cutOff = glm::cos(glm::radians(this->cutOff[0]));
+            SpotLights[i].outerCutOff = glm::cos(glm::radians(this->cutOff[0] + 2.5));
+            //printf("SpotLight: "); std::cout << SpotLights[i].cutOff << std::endl;
+        //}
+
     }
 
     ImGui::End();

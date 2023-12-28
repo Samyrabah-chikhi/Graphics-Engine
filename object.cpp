@@ -62,16 +62,6 @@ struct Material {
     float shininess;
 }; 
 
-struct PhongLight{
-    vec3 lightPos;
-    vec3 lightColor;
-
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-
-};
-
 struct DirLight {
     vec3 direction;
 
@@ -92,23 +82,70 @@ struct PointLight {
     vec3 specular;
 };  
 
-#define NR_PHONG_LIGHTS 128
-uniform PhongLight phongLights[NR_PHONG_LIGHTS];
-uniform int nbrPhongLight;
+struct SpotLight {
+    vec3 position;  
+    vec3 direction;
+    float cutOff;
+    float outerCutOff;
+  
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+	
+    float constant;
+    float linear;
+    float quadratic;
+};
 
-#define NR_POINT_LIGHTS 128
+#define NR_POINT_LIGHTS 16
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform int nbrPointLight;
 
-#define NR_DIR_LIGHTS 128
+#define NR_DIR_LIGHTS 16
 uniform DirLight dirLights[ NR_DIR_LIGHTS];
 uniform int nbrDirLight;
+
+#define NR_SPOT_LIGHTS 16
+uniform SpotLight spotLights[ NR_SPOT_LIGHTS];
+uniform int nbrSpotLight;
+
 
 uniform vec3 viewPos;
 uniform Material material;
 
 uniform bool lightExist;
 
+vec3 calcSpotLight(SpotLight light,vec3 norm, vec3 FragPos , vec3 viewDir){
+
+    vec3 ambient = light.ambient * material.diffuse;
+    
+    // diffuse 
+    vec3 lightDir = normalize(light.position - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = light.diffuse * diff * material.diffuse;  
+    
+    // specular
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specular = light.specular * spec * material.specular;  
+    
+    // spotlight (soft edges)
+    float theta = dot(lightDir, normalize(-light.direction)); 
+    float epsilon = (light.cutOff - light.outerCutOff);
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+    diffuse  *= intensity;
+    specular *= intensity;
+    
+    // attenuation
+    float distance    = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+    ambient  *= attenuation; 
+    diffuse   *= attenuation;
+    specular *= attenuation;   
+        
+    return ambient + diffuse + specular;
+
+}
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
@@ -125,6 +162,27 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     return (ambient + diffuse + specular);
 } 
 
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+
+    float distance    = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + 
+  			     light.quadratic * (distance * distance));    
+
+    vec3 ambient  = light.ambient  * material.diffuse;
+    vec3 diffuse  = light.diffuse  * diff * material.diffuse;
+    vec3 specular = light.specular * spec * material.specular;
+    ambient  *= attenuation;
+    diffuse  *= attenuation;
+    specular *= attenuation;
+    return (ambient + diffuse + specular);
+} 
 
 
 void main()
@@ -137,11 +195,15 @@ void main()
 	vec3 norm = normalize(Normals);
 	vec3 viewDir = normalize(viewPos - FragPos);
 
-	for(int i=0;i<nbrDirLight;i++){
-
+	for(int i = 0; i < nbrDirLight; i++)
 		result += CalcDirLight(dirLights[i], norm,viewDir );
-	}
-    
+	
+    for(int i = 0; i < nbrPointLight; i++)
+        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir); 
+	
+	for(int i = 0; i < nbrSpotLight; i++)
+		result += calcSpotLight(spotLights[i], norm, FragPos, viewDir);
+	
     FragColor = vec4(result*material.color, 1.0);
 
 }
@@ -154,23 +216,23 @@ void main()
 
 float cubeMesh[] = {
 
-		0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f ,
-		0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
-                                                    
-		1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f ,
-		1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f ,
-                                                     
-		1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f ,
-		1.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f ,
-                                                     
-		0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f ,
-		0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f ,
-                                                 
-		0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f ,
-		0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f ,
-                                                    
-		1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f ,
-		1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
+			0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f ,
+			0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
+
+			1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f ,
+			1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f ,
+
+			1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f ,
+			1.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f ,
+
+			0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f ,
+			0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f ,
+
+			0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f ,
+			0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f ,
+
+			1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f ,
+			1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
 
 };
 
@@ -180,7 +242,8 @@ std::vector<object*> Objects;
 
 int object::numberOfObjects = 0;
 
-object::object(float* vertices, int numberOfVertices) {
+object::object() {
+
 	this->indexExist = false;
 	this->shaderExist = false;
 	this->textureExist = false;
@@ -199,6 +262,46 @@ object::object(float* vertices, int numberOfVertices) {
 
 	glGenVertexArrays(1, &this->VAO);
 	glGenBuffers(1, &this->VBO);
+
+
+
+	for (int i = 0; i < sizeof(cubeMesh)/sizeof(float); i++) {
+		this->vertex.push_back(cubeMesh[i]);
+	}
+
+	glBindVertexArray(this->VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->vertex.size(), this->vertex.data(), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	this->calculateNormals();
+
+	CreateShader();
+}
+
+object::object(float* vertices) {
+	this->indexExist = false;
+	this->shaderExist = false;
+	this->textureExist = false;
+	this->materialExist = false;
+
+	this->material.color = glm::vec3(1.0f, 0.0f, 0.0f);
+	this->material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	this->material.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+	this->material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+	this->material.shininess = 128.0f;
+
+	this->indexOfObject = numberOfObjects;
+
+	Objects.push_back(this);
+	numberOfObjects++;
+
+	glGenVertexArrays(1, &this->VAO);
+	glGenBuffers(1, &this->VBO);
+
+	int numberOfVertices = sizeof(vertices) / sizeof(float);
 
 	for (int i = 0; i < numberOfVertices; i++) {
 		this->vertex.push_back(vertices[i]);
@@ -216,7 +319,7 @@ object::object(float* vertices, int numberOfVertices) {
 	CreateShader();
 }
 
-object::object(float* vertices, int numberOfVertices, glm::vec3 origin) {
+object::object(float* vertices, glm::vec3 origin) {
 
 	this->indexExist = false;
 	this->shaderExist = false;
@@ -236,6 +339,8 @@ object::object(float* vertices, int numberOfVertices, glm::vec3 origin) {
 
 	glGenVertexArrays(1, &this->VAO);
 	glGenBuffers(1, &this->VBO);
+
+	int numberOfVertices = sizeof(vertices) / sizeof(float);
 
 	for (int i = 0; i < numberOfVertices; i += 3) {
 		this->vertex.push_back(vertices[i] + origin.x);
@@ -255,13 +360,13 @@ object::object(float* vertices, int numberOfVertices, glm::vec3 origin) {
 	CreateShader();
 }
 
-object::object(float* vertices, int numberOfVertices, glm::vec3 origin, glm::vec3 customColor) :
-	object::object(vertices, numberOfVertices, origin) {
+object::object(float* vertices, glm::vec3 origin, glm::vec3 customColor) :
+	object::object(vertices, origin) {
 	this->material.color = customColor;
 }
 
-object::object(float* vertices, int numberOfVertices, int* indices, int numberOfIndices, glm::vec3 origin) :
-	object::object(vertices, numberOfVertices, origin) {
+object::object(float* vertices, int* indices, int numberOfIndices, glm::vec3 origin) :
+	object::object(vertices, origin) {
 
 	this->indexExist = true;
 	for (int i = 0; i < numberOfIndices; i++)
@@ -586,3 +691,4 @@ GLuint object::GetShaderID() {
 void object::RenderLight(bool renderLight) {
 	this->renderLight = renderLight;
 }
+

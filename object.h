@@ -16,15 +16,6 @@
 
 # define M_PI 3.14159265358979323846
 
-//typedef struct PhongLight {
-//	glm::vec3 lightPos;
-//	glm::vec3 lightColor;
-//
-//	glm::vec3 ambient;
-//	glm::vec3 diffuse;
-//	glm::vec3 specular;
-//}PhongLight;
-
 
 typedef struct Material {
 
@@ -67,11 +58,11 @@ private:
 	bool lightExist = false;
 
 public:
-
-	object(float* vertices, int numberOfVertices);
-	object(float* vertices, int numberOfVertices, glm::vec3 origin);
-	object(float* vertices, int numberOfVertices, int* indices, int numberOfIndices, glm::vec3 origin);
-	object(float* vertices, int numberOfVertices, glm::vec3 origin,glm::vec3 customColor);
+	object();
+	object(float* vertices);
+	object(float* vertices, glm::vec3 origin);
+	object(float* vertices, int* indices, int numberOfIndices, glm::vec3 origin);
+	object(float* vertices, glm::vec3 origin,glm::vec3 customColor);
 
 	void AddShader(float* colors, int numberOfColors);
 	void Render(glm::mat4* mvp);
@@ -103,6 +94,8 @@ private:
 	glm::vec3 point(int index);
 	
 };
+
+extern float cubeMesh[];
 
 extern std::vector<object*> Objects;
 #endif
