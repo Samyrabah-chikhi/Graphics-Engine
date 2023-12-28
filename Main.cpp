@@ -1,7 +1,7 @@
 #include "inclusion.h"
 
-#define width 800
-#define height 800
+#define width 1080
+#define height 1080
 
 int main() {
       
@@ -50,8 +50,7 @@ int main() {
 
     Camera cam = Camera(window,position,orientation);
 
-    addLight(PHONG_LIGHT);
-
+    addLight(1);
     //Main Loop and framerate
     int nbFrames = 0;
     float prevTime = glfwGetTime(), crntTime;

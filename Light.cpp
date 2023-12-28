@@ -1,8 +1,8 @@
 #include "Light.h"
 
 #define LIGHTTYPE int
-#define DIRECTIONAL_LIGHT 0
-#define POINT_LIGHT 1
+#define POINT_LIGHT 0
+#define DIRECTIONAL_LIGHT 1
 #define SPOT_LIGHT 2
 #define PHONG_LIGHT 3
 
@@ -16,8 +16,8 @@ void addLight(LIGHTTYPE type)
 	lightExist = true;
 
 	if (type == 0) {
+
 		PointLight pt;
-		pt.color = glm::vec3(1.0f, 1.0f, 1.0f);
 		pt.position = glm::vec3(0.0f, 0.0f, 0.0f);
 		
 		pt.constant = 1.0f;
@@ -35,7 +35,6 @@ void addLight(LIGHTTYPE type)
 
 		DirLight dr;
 		dr.direction = glm::vec3(-1.0f,0.0f,-1.0f);
-		dr.color = glm::vec3(1.0f, 1.0f, 1.0f);
 		
 		dr.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 		dr.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);

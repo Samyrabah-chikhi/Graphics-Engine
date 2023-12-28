@@ -1,3 +1,5 @@
+#ifndef LIGHT_H
+#define LIGHT_H
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp> 
 #include <glm/gtc/matrix_transform.hpp>
@@ -22,7 +24,6 @@ typedef struct PhongLight {
 
 typedef struct DirLight {
     glm::vec3 direction;
-    glm::vec3 color;
 
     glm::vec3 ambient;
     glm::vec3 diffuse;
@@ -31,7 +32,6 @@ typedef struct DirLight {
 
 typedef struct PointLight {
     glm::vec3 position;
-    glm::vec3 color;
 
     float constant;
     float linear;
@@ -70,4 +70,4 @@ void addLight(LIGHTTYPE type);
 
     OnDestroy(&VAOLight, &VBOLight, window);*/
 
-    
+#endif // LIGHT_H

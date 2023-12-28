@@ -169,7 +169,14 @@ void Camera::TransformCamera() {
 
 }
 
+glm::mat4* Camera::getMvp() {
+    return this->mvp;
+}
 
+void Camera::enableDepth()
+{
+    glEnable(GL_DEPTH_TEST);
+}
 
 void Camera::render(std::vector<object*> Object)
 {
@@ -181,54 +188,39 @@ void Camera::render(std::vector<object*> Object)
         glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "lightExist"),
             lightExist);
 
-        glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "nbrPhongLight"),
-            int(PhongLights.size()));
+        glUniform1i(glGetUniformLocation(Object[i]->GetShaderID(), "nbrDirLight"),
+            int(DirLights.size()));
 
-        for(int j=0;j<PhongLights.size();j++)
-            this->RenderLight(Object[i], j);
+        
+        for (int j = 0; j < DirLights.size(); j++) {
+            this->RenderDirLight(Object[i], j);
+        }
+            
 
     }
 
 }
 
-glm::mat4* Camera::getMvp() {
-    return this->mvp;
-}
 
-void Camera::enableDepth()
-{
-    glEnable(GL_DEPTH_TEST);
-}
-
-void Camera::RenderLight(object* Object,int indices)
+void Camera::RenderDirLight(object* Object, int indices)
 {
     GLuint shader = Object->GetShaderID();
     std::string uniform;
 
 
-    uniform = "phongLights[" + std::to_string(indices) + "].lightColor";
+    uniform = "dirLights[" + std::to_string(indices) + "].direction";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f, 
+        glm::value_ptr(DirLights[indices].direction));
 
-    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
-        1.0f, glm::value_ptr(PhongLights[indices].lightColor));
+    uniform = "dirLights[" + std::to_string(indices) + "].ambient";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f,
+        glm::value_ptr(DirLights[indices].ambient));
 
-    uniform = "phongLights[" + std::to_string(indices) + "].lightPos";
+    uniform = "dirLights[" + std::to_string(indices) + "].diffuse";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f, 
+        glm::value_ptr(DirLights[indices].diffuse));
 
-    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
-        1.0f, glm::value_ptr(PhongLights[indices].lightPos));
-
-    uniform = "phongLights[" + std::to_string(indices) + "].ambient";
-
-    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
-        1.0f, glm::value_ptr(PhongLights[indices].ambient));
-
-    uniform = "phongLights[" + std::to_string(indices) + "].diffuse";
-
-    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
-        1.0f, glm::value_ptr(PhongLights[indices].diffuse));
-
-    uniform = "phongLights[" + std::to_string(indices) + "].specular";
-
-    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()),
-        1.0f, glm::value_ptr(PhongLights[indices].specular));
-
+    uniform = "dirLights[" + std::to_string(indices) + "].specular";
+    glUniform3fv(glGetUniformLocation(shader, uniform.c_str()), 1.0f, 
+        glm::value_ptr(DirLights[indices].specular));
 }

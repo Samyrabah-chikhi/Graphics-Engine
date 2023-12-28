@@ -45,8 +45,6 @@ void main(){
 )";
 
 
-
-
 const char* fragmentShaderSource = R"(
 #version 330 core
 
@@ -74,47 +72,77 @@ struct PhongLight{
 
 };
 
+struct DirLight {
+    vec3 direction;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+}; 
+
+struct PointLight {    
+    vec3 position;
+	
+    float constant;
+    float linear;
+    float quadratic;  
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};  
 
 #define NR_PHONG_LIGHTS 128
 uniform PhongLight phongLights[NR_PHONG_LIGHTS];
-
 uniform int nbrPhongLight;
 
-uniform PhongLight phongLightss; // to be deleted
+#define NR_POINT_LIGHTS 128
+uniform PointLight pointLights[NR_POINT_LIGHTS];
+uniform int nbrPointLight;
+
+#define NR_DIR_LIGHTS 128
+uniform DirLight dirLights[ NR_DIR_LIGHTS];
+uniform int nbrDirLight;
 
 uniform vec3 viewPos;
 uniform Material material;
 
 uniform bool lightExist;
 
+
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
+{
+    vec3 lightDir = normalize(-light.direction);
+
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+
+    vec3 ambient  = light.ambient  * material.diffuse;
+    vec3 diffuse  = light.diffuse  * diff * material.diffuse;
+    vec3 specular = light.specular * spec * material.specular;
+    return (ambient + diffuse + specular);
+} 
+
+
+
 void main()
 {    
 
   if(lightExist){
-	
-	
+		
   	vec3 result = vec3(0.0);
-	
-	
-	for(int i=0;i<nbrPhongLight;i++){
 
-		vec3 norm = normalize(Normals);
-		vec3 lightDir = normalize(phongLights[i].lightPos - FragPos);
-		float diff = max(dot(norm, lightDir), 0.0);
+	vec3 norm = normalize(Normals);
+	vec3 viewDir = normalize(viewPos - FragPos);
 
-		vec3 viewDir = normalize(viewPos - FragPos);
-		vec3 reflectDir = reflect(-lightDir, norm);  
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-		vec3 specular = phongLights[i].specular * (spec * material.specular);  
-        
-		vec3 ambient  = phongLights[i].ambient * material.ambient;
-		vec3 diffuse  = phongLights[i].diffuse * (diff * material.diffuse);
+	for(int i=0;i<nbrDirLight;i++){
 
-	
-		result += (ambient + diffuse + specular) * material.color;
+		result += CalcDirLight(dirLights[i], norm,viewDir );
 	}
     
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(result*material.color, 1.0);
 
 }
 	else{

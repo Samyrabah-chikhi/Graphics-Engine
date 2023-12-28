@@ -28,6 +28,7 @@ void Gui::AfterDrawing(std::vector<object*> Object)
     ImGui::Checkbox("Render Light", &this->renderLight);
 
     int length = Object.size();
+    std::string title;
 
     for (int i = 0; i < length; i++) {
 
@@ -36,7 +37,7 @@ void Gui::AfterDrawing(std::vector<object*> Object)
         Objects[i]->RenderLight(this->renderLight);
         
 
-        std::string title = "Object " + std::to_string(i + 1) + ":";
+        title = "Object " + std::to_string(i + 1) + ":";
         ImGui::Text(title.c_str());
 
         //Color      
@@ -83,8 +84,23 @@ void Gui::AfterDrawing(std::vector<object*> Object)
         if (ImGui::Button(title.c_str())) {
             Objects[i]->SetShininess(shininess[0]);
         }
-    }
 
+    }
+    length = DirLights.size();
+    for (int i = 0; i < length; i++) {
+
+        lightDirection[0] = DirLights[i].direction.x;
+        lightDirection[1] = DirLights[i].direction.y;
+        lightDirection[2] = DirLights[i].direction.z;
+
+        title = "Light Direction" + std::to_string(i + 1);
+        ImGui::SliderFloat3(title.c_str(), this->lightDirection,-10,10);
+        DirLights[i].direction = glm::vec3(lightDirection[0], lightDirection[1], lightDirection[2]);
+
+        /*title = "Light Color" + std::to_string(i + 1);
+        ImGui::ColorEdit3(title.c_str(), this->lightColor);
+        PhongLights[i].lightColor = glm::vec3(lightColor[0], lightColor[1], lightColor[2]);*/
+    }
 
     ImGui::End();
 }
