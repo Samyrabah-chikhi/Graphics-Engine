@@ -156,6 +156,7 @@
     <ClCompile Include="object.cpp" />
     <ClCompile Include="stb.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\Administrator\Downloads\stb_image.h" />
@@ -175,6 +176,7 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

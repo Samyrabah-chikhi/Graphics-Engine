@@ -214,37 +214,13 @@ void main()
 }
 )";
 
-float cubeMesh[] = {
-
-			0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f ,
-			0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
-
-			1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f ,
-			1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f ,
-
-			1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f ,
-			1.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f ,
-
-			0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f ,
-			0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f ,
-
-			0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f ,
-			0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f ,
-
-			1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f ,
-			1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f ,
-
-};
-
-//std::vector<PhongLight> light;
-
 std::vector<object*> Objects;
 
 int object::numberOfObjects = 0;
 
-object::object() {
+object::object(float radius,int stackCount,int sectorCount) {
 
-	this->indexExist = false;
+	this->indexExist = true; // Important
 	this->shaderExist = false;
 	this->textureExist = false;
 	this->materialExist = false;
@@ -262,21 +238,32 @@ object::object() {
 
 	glGenVertexArrays(1, &this->VAO);
 	glGenBuffers(1, &this->VBO);
+	glGenBuffers(1, &this->EBO);
+	glGenBuffers(1, &this->VBONormals);
+	//
 
-
-
-	for (int i = 0; i < sizeof(cubeMesh)/sizeof(float); i++) {
-		this->vertex.push_back(cubeMesh[i]);
-	}
-
+	generateSphereVertex(&this->vertex, &this->normals, &this->textures, radius, stackCount, sectorCount);
+	generateSphereIndices(&this->indices, NULL, stackCount, sectorCount);
+	//
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->vertex.size(), this->vertex.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER,this->vertex.size()*sizeof(float), this->vertex.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(int), this->indices.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	this->calculateNormals();
+	glBindBuffer(GL_ARRAY_BUFFER, this->VBONormals);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->normals.size(), this->normals.data(), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+
+
+
+	//This ain't a cube this->calculateNormals();
 
 	CreateShader();
 }
@@ -309,7 +296,7 @@ object::object(float* vertices) {
 
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->vertex.size(), this->vertex.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeMesh), this->vertex.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -350,7 +337,7 @@ object::object(float* vertices, glm::vec3 origin) {
 
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->vertex.size(), this->vertex.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeMesh), this->vertex.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -373,7 +360,7 @@ object::object(float* vertices, int* indices, int numberOfIndices, glm::vec3 ori
 		this->indices.push_back(indices[i]);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * this->indices.size(), this->indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), this->indices.data(), GL_STATIC_DRAW);
 
 }
 
@@ -433,6 +420,7 @@ void object::Render(glm::mat4* mvp) {
 		glUseProgram(this->TextureID);
 	if (this->indexExist) {
 		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+		
 	}
 	else {
 		glDrawArrays(GL_TRIANGLES, 0, this->vertex.size());
@@ -614,7 +602,7 @@ void object::setLightExist(bool setLight)
 void object::calculateNormals() {
 
 	this->VBONormals;
-	glBindVertexArray(this->VAO);
+	glBindVertexArray(this->VAO);  
 	glGenBuffers(1, &this->VBONormals);
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBONormals);
@@ -635,9 +623,8 @@ void object::calculateNormals() {
 			this->normals.push_back(norm.y);
 			this->normals.push_back(norm.z);
 		}
-			
-
 	}
+
 	printf("Length of normal coordinates: %d\n", this->normals.size());
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->normals.size(), this->normals.data(),GL_STATIC_DRAW);	
 	glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE, 3 * sizeof(float), (void*)0);

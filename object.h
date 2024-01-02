@@ -14,8 +14,7 @@
 #include <sstream>
 #include <iostream>
 
-# define M_PI 3.14159265358979323846
-
+#include "Utilities.h"
 
 typedef struct Material {
 
@@ -58,7 +57,7 @@ private:
 	bool lightExist = false;
 
 public:
-	object();
+	object(float radius, int stackCount, int sectorCount);
 	object(float* vertices);
 	object(float* vertices, glm::vec3 origin);
 	object(float* vertices, int* indices, int numberOfIndices, glm::vec3 origin);
@@ -86,7 +85,6 @@ public:
 	
 	GLuint GetShaderID();
 
-	void generateSphere(float radius,int stackCount,int sectorCount);
 private:
 	void CreateShader();
 	GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path, const char* geomtry_file_path);
@@ -94,8 +92,6 @@ private:
 	glm::vec3 point(int index);
 	
 };
-
-extern float cubeMesh[];
 
 extern std::vector<object*> Objects;
 #endif

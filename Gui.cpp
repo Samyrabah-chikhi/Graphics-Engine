@@ -27,8 +27,8 @@ void Gui::AfterDrawing(std::vector<object*> Object)
  
     ImGui::Checkbox("Render Light", &this->renderLight);
 
-    if(ImGui::Button("Add Cube")){
-        object newMesh = object();
+    if(ImGui::Button("Add Sphere")){
+        object newMesh = object(1.0, 50, 50);
     }
 
     int length = Object.size();
@@ -125,6 +125,8 @@ void Gui::AfterDrawing(std::vector<object*> Object)
     length = SpotLights.size();
     for (int i = 0; i < length; i++) {
             
+        
+
         title = "SpotLight Position" + std::to_string(i + 1);
         ImGui::SliderFloat3(title.c_str(), this->lightPosSpot, -10, 10);
 
@@ -151,7 +153,7 @@ void Gui::AfterDrawing(std::vector<object*> Object)
             SpotLights[i].outerCutOff = glm::cos(glm::radians(this->cutOff[0] + 2.5));
             //printf("SpotLight: "); std::cout << SpotLights[i].cutOff << std::endl;
         //}
-
+            
     }
 
     ImGui::End();

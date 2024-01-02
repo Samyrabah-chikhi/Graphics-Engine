@@ -8,6 +8,8 @@
 std::vector<PointLight> PointLights;
 std::vector<DirLight> DirLights;
 std::vector <SpotLight> SpotLights; 
+std::vector<Light*> Lights;
+
 bool lightExist = false;
 
 void addLight(LIGHTTYPE type)
@@ -64,4 +66,48 @@ void addLight(LIGHTTYPE type)
 	else {
 		printf("Error no like this exists\n");
 	}
+}
+
+
+
+Light::Light(LIGHTRENDER type)
+{
+	if (!type) {
+		glGenVertexArrays(1, &this->VAO);
+		glBindVertexArray(this->VAO);
+		glGenBuffers(1, &this->VBO);
+
+		int length = sizeof(cubeMesh) / sizeof(float);
+
+		for (int i = 0; i < length; i++) {
+			this->vertex.push_back(cubeMesh[i]);
+		}
+
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(cubeMesh), cubeMesh, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3 , GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		Lights.push_back(this);
+	}
+
+
+}
+void Light::render() {
+
+	int length = sizeof(cubeMesh) / sizeof(float);
+
+	for (int i = 0; i < SpotLights.size(); i++) {
+		for (int j = 0; j < length; j+=3) {
+			this->vertex[j] += SpotLights[i].position.x;
+			this->vertex[j + 1] += SpotLights[i].position.y;
+			this->vertex[j + 2] += SpotLights[i].position.z;
+
+		}
+		glBindVertexArray(this->VAO);
+		glDrawArrays(GL_TRIANGLES, 0, this->vertex.size());
+	}
+
+	
+
 }

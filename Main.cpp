@@ -37,8 +37,8 @@ int main() {
     //Objects creation
 
 
-    object popa = object();
-
+    object popa = object(1.0,50,50);
+    //object pop = object(cubeMesh, glm::vec3(0, 3, -1),glm::vec3(1,1,0));
     //Make a struct containing all camera settings
 
     glm::vec3 position= glm::vec3(0.0f, 0.0f, 5.0f);

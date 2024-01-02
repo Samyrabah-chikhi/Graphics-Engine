@@ -7,6 +7,8 @@
 #include "glad/glad.h"
 #include <vector>
 
+#include "Utilities.h"
+
 #define LIGHTTYPE int
 #define POINT_LIGHT 0
 #define DIRECTIONAL_LIGHT 1
@@ -60,19 +62,23 @@ void showPointLight(int index);
 void showSpotLight(int index);
 
 
+#define LIGHTRENDER int
+#define CUBE 0
+#define SPHERE 1
+
+
+class Light {
+
+    GLuint VAO, VBO, EBO;
     
-    /*GLuint VAOLight, VBOLight;
-    glGenVertexArrays(1, &VAOLight);
-    glGenBuffers(1, &VBOLight);
+    std::vector<float> vertex;
 
-    glBindVertexArray(VAOLight);  
-    glBindBuffer(GL_ARRAY_BUFFER, VBOLight);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
+public:
+    Light(LIGHTRENDER type);
+    void render();
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+};
 
+extern std::vector<Light*> Lights;
 
-    OnDestroy(&VAOLight, &VBOLight, window);*/
-
-#endif // LIGHT_H
+#endif 
